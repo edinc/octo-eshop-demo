@@ -1,11 +1,14 @@
-# Phase 5: Containerization
+# Phase 5: Containerization & Local Testing
 
 ## Overview
-Create Docker configurations for all services, set up docker-compose for local development, and optimize Docker images for production deployment.
+Create Docker configurations for all services, set up docker-compose for local development, and **verify the complete application works end-to-end locally** before proceeding to cloud deployment.
 
 ## Prerequisites
-- All services from Phases 2-4 implemented
+- All services from Phases 2-4 implemented and tested
 - Docker Desktop installed locally
+
+## Goal
+By the end of this phase, you should be able to run `docker-compose up` and have a fully functional e-commerce application running locally, with all services communicating correctly.
 
 ---
 
@@ -999,10 +1002,11 @@ curl http://localhost:8080/api/products  # via API gateway
 - [ ] docker-compose.override.yml for development
 - [ ] Kong API Gateway configuration
 - [ ] .dockerignore file
-- [ ] Build and push scripts
+- [ ] Build scripts (for local use)
 - [ ] All services pass health checks
 - [ ] All services communicate correctly via docker network
 - [ ] Database migrations run successfully in containers
+- [ ] **End-to-end user flow verified locally** (register → browse → add to cart → checkout)
 
 ---
 
@@ -1012,6 +1016,6 @@ curl http://localhost:8080/api/products  # via API gateway
 - Phases 2-4: All services implemented
 
 **Required by:**
-- Phase 6: Kubernetes configuration
-- Phase 7: Azure infrastructure (needs images in ACR)
+- Phase 6: Azure Infrastructure (images ready for ACR)
+- Phase 7: Kubernetes configuration (Dockerfiles complete)
 - Phase 8: CI/CD pipeline (builds images)

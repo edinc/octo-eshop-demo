@@ -1,19 +1,19 @@
-# Phase 6: Kubernetes Configuration with Helm
+# Phase 7: Kubernetes Configuration with Helm
 
 ## Overview
 Create Helm charts for deploying all services to AKS, with one chart per microservice for independent releases and versioning.
 
 ## Prerequisites
+- Phase 6 completed (Azure infrastructure deployed, AKS cluster running)
 - Phase 5 completed (Docker images available)
-- kubectl installed
+- kubectl installed and configured for AKS
 - Helm 3.x installed
-- Basic understanding of Kubernetes and Helm concepts
 
 ---
 
 ## Tasks
 
-### 6.1 Helm Chart Structure
+### 7.1 Helm Chart Structure
 
 **Objective:** Create Helm charts for each microservice with shared templates and values.
 
@@ -70,7 +70,7 @@ helm/
 
 ---
 
-### 6.2 Base Helm Chart Template
+### 7.2 Base Helm Chart Template
 
 **Objective:** Create a reusable chart structure that all services follow.
 
@@ -256,7 +256,7 @@ extraVolumeMounts:
 
 ---
 
-### 6.3 Helm Templates
+### 7.3 Helm Templates
 
 #### File: `helm/charts/user-service/templates/_helpers.tpl`
 ```yaml
@@ -633,7 +633,7 @@ Then visit http://localhost:8080
 
 ---
 
-### 6.4 Environment-Specific Values
+### 7.4 Environment-Specific Values
 
 #### File: `helm/charts/user-service/values-dev.yaml`
 ```yaml
@@ -742,7 +742,7 @@ externalSecrets:
 
 ---
 
-### 6.5 Helmfile for Multi-Service Deployment
+### 7.5 Helmfile for Multi-Service Deployment
 
 **Objective:** Manage all service deployments together using Helmfile.
 
@@ -842,7 +842,7 @@ imageTag: "v1.0.0"
 
 ---
 
-### 6.6 Frontend Chart Values
+### 7.6 Frontend Chart Values
 
 #### File: `helm/charts/frontend/values.yaml`
 ```yaml
@@ -919,7 +919,7 @@ extraVolumeMounts:
 
 ---
 
-### 6.7 Network Policies Chart
+### 7.7 Network Policies Chart
 
 #### File: `helm/charts/network-policies/templates/default-deny.yaml`
 ```yaml
@@ -1100,8 +1100,8 @@ helm test user-service -n octo-eshop-dev
 ## Dependencies
 
 **Depends on:**
-- Phase 5: Docker images
+- Phase 5: Containerization (Docker images ready)
+- Phase 6: Azure Infrastructure (AKS cluster deployed)
 
 **Required by:**
-- Phase 7: Azure infrastructure (AKS cluster)
-- Phase 8: CI/CD pipeline (deployment commands updated)
+- Phase 8: CI/CD pipeline (Helm deployment commands)

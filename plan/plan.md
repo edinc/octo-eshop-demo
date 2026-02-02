@@ -307,25 +307,31 @@ octo-eshop-demo/
 ## Implementation Phases
 
 > **Detailed phase documentation is available in separate files:**
-> - [Phase 1: Project Setup & Infrastructure Foundation](./phase-01-project-setup.md)
+>
+> ### Part A: Local Development (Build Everything Locally First)
+> - [Phase 1: Project Setup (Local Only)](./phase-01-project-setup.md)
 > - [Phase 2: Core Backend Services](./phase-02-core-backend-services.md)
 > - [Phase 3: Order & Payment Services](./phase-03-order-payment-services.md)
 > - [Phase 4: Frontend Development](./phase-04-frontend-development.md)
-> - [Phase 5: Containerization](./phase-05-containerization.md)
-> - [Phase 6: Kubernetes Configuration with Helm](./phase-06-kubernetes-configuration.md)
-> - [Phase 7: Azure Infrastructure with Terraform](./phase-07-azure-infrastructure.md)
+> - [Phase 5: Containerization & Local Testing](./phase-05-containerization.md)
+>
+> ### Part B: Deployment (After Local Development Complete)
+> - [Phase 6: Azure Infrastructure with Terraform](./phase-06-azure-infrastructure.md)
+> - [Phase 7: Kubernetes Configuration with Helm](./phase-07-kubernetes-configuration.md)
 > - [Phase 8: CI/CD Pipeline](./phase-08-cicd-pipeline.md)
 > - [Phase 9: Observability & Security](./phase-09-observability-security.md)
 > - [Phase 10: Documentation & Polish](./phase-10-documentation-polish.md)
 
-### Phase 1: Project Setup & Infrastructure Foundation
+---
+
+## Part A: Local Development
+
+### Phase 1: Project Setup (Local Only)
 - [ ] Initialize monorepo with npm workspaces
 - [ ] Set up TypeScript configuration
 - [ ] Set up ESLint and Prettier
-- [ ] Create base Terraform modules
-- [ ] Set up Azure resource group and networking
-- [ ] Create Azure Container Registry
-- [ ] Set up GitHub Actions for CI
+- [ ] Create shared types and utilities packages
+- [ ] Set up local development scripts
 
 ### Phase 2: Core Backend Services
 - [ ] Implement User Service
@@ -375,23 +381,22 @@ octo-eshop-demo/
 - [ ] Create User profile pages
 - [ ] Implement authentication flow
 
-### Phase 5: Containerization
+### Phase 5: Containerization & Local Testing
 - [ ] Create Dockerfiles for all services
 - [ ] Create docker-compose for local development
 - [ ] Test all services with Docker locally
 - [ ] Optimize Docker images (multi-stage builds)
+- [ ] Verify complete application works end-to-end locally
+- [ ] Document local development workflow
 
-### Phase 6: Kubernetes Configuration with Helm
-- [ ] Create Helm charts for all services (one chart per microservice)
-- [ ] Create environment-specific values files (dev, staging, production)
-- [ ] Configure Helmfile for multi-service deployment
-- [ ] Set up HorizontalPodAutoscaler in charts
-- [ ] Configure PodDisruptionBudget for high availability
-- [ ] Set up External Secrets integration for Azure Key Vault
-- [ ] Create network policies chart
-- [ ] Validate all charts with `helm lint`
+---
 
-### Phase 7: Azure Infrastructure with Terraform
+## Part B: Deployment
+
+### Phase 6: Azure Infrastructure with Terraform
+- [ ] Create base Terraform modules
+- [ ] Set up Azure resource group and networking
+- [ ] Create Azure Container Registry
 - [ ] Deploy AKS cluster
 - [ ] Deploy Azure Database for PostgreSQL
 - [ ] Deploy Azure Cache for Redis
@@ -400,6 +405,16 @@ octo-eshop-demo/
 - [ ] Deploy Azure Blob Storage
 - [ ] Configure networking and security groups
 - [ ] Set up Azure Monitor and Log Analytics
+
+### Phase 7: Kubernetes Configuration with Helm
+- [ ] Create Helm charts for all services (one chart per microservice)
+- [ ] Create environment-specific values files (dev, staging, production)
+- [ ] Configure Helmfile for multi-service deployment
+- [ ] Set up HorizontalPodAutoscaler in charts
+- [ ] Configure PodDisruptionBudget for high availability
+- [ ] Set up External Secrets integration for Azure Key Vault
+- [ ] Create network policies chart
+- [ ] Validate all charts with `helm lint`
 
 ### Phase 8: CI/CD Pipeline
 - [ ] Create GitHub Actions CI workflow

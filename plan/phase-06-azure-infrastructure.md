@@ -1,10 +1,10 @@
-# Phase 7: Azure Infrastructure with Terraform
+# Phase 6: Azure Infrastructure with Terraform
 
 ## Overview
-Deploy all Azure resources using Terraform, including AKS cluster, databases, Redis cache, Key Vault, and supporting services.
+Deploy all Azure resources using Terraform, including AKS cluster, databases, Redis cache, Key Vault, and supporting services. This is the first deployment phase after completing local development.
 
 ## Prerequisites
-- Phase 1 completed (Terraform modules created)
+- Phase 5 completed (all services working locally with docker-compose)
 - Azure CLI installed and authenticated
 - Azure subscription with appropriate permissions
 - Terraform 1.5+ installed
@@ -13,7 +13,7 @@ Deploy all Azure resources using Terraform, including AKS cluster, databases, Re
 
 ## Tasks
 
-### 7.1 Terraform Provider Configuration
+### 6.1 Terraform Provider Configuration
 
 #### File: `infrastructure/terraform/environments/dev/providers.tf`
 ```hcl
@@ -60,7 +60,7 @@ provider "azuread" {}
 
 ---
 
-### 7.2 Main Infrastructure Configuration
+### 6.2 Main Infrastructure Configuration
 
 #### File: `infrastructure/terraform/environments/dev/main.tf`
 ```hcl
@@ -278,7 +278,7 @@ resource "azurerm_key_vault_secret" "jwt_secret" {
 
 ---
 
-### 7.3 Terraform Modules
+### 6.3 Terraform Modules
 
 #### File: `infrastructure/terraform/modules/aks/main.tf`
 ```hcl
@@ -561,7 +561,7 @@ resource "azurerm_monitor_action_group" "main" {
 
 ---
 
-### 7.4 Variables
+### 6.4 Variables
 
 #### File: `infrastructure/terraform/environments/dev/variables.tf`
 ```hcl
@@ -709,7 +709,7 @@ servicebus_sku = "Basic"
 
 ---
 
-### 7.5 Outputs
+### 6.5 Outputs
 
 #### File: `infrastructure/terraform/environments/dev/outputs.tf`
 ```hcl
@@ -810,8 +810,8 @@ kubectl get nodes
 ## Dependencies
 
 **Depends on:**
-- Phase 1: Base Terraform modules
+- Phase 5: Containerization & Local Testing (all services working locally)
 
 **Required by:**
-- Phase 6: Kubernetes deployment (needs AKS)
+- Phase 7: Kubernetes Configuration (needs AKS cluster)
 - Phase 8: CI/CD pipeline (needs ACR, AKS)
