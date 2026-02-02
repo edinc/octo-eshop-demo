@@ -312,7 +312,7 @@ octo-eshop-demo/
 > - [Phase 3: Order & Payment Services](./phase-03-order-payment-services.md)
 > - [Phase 4: Frontend Development](./phase-04-frontend-development.md)
 > - [Phase 5: Containerization](./phase-05-containerization.md)
-> - [Phase 6: Kubernetes Configuration](./phase-06-kubernetes-configuration.md)
+> - [Phase 6: Kubernetes Configuration with Helm](./phase-06-kubernetes-configuration.md)
 > - [Phase 7: Azure Infrastructure with Terraform](./phase-07-azure-infrastructure.md)
 > - [Phase 8: CI/CD Pipeline](./phase-08-cicd-pipeline.md)
 > - [Phase 9: Observability & Security](./phase-09-observability-security.md)
@@ -381,13 +381,15 @@ octo-eshop-demo/
 - [ ] Test all services with Docker locally
 - [ ] Optimize Docker images (multi-stage builds)
 
-### Phase 6: Kubernetes Configuration
-- [ ] Create Kubernetes manifests for all services
-- [ ] Set up Kustomize for environment overlays
-- [ ] Configure ingress and load balancing
-- [ ] Set up ConfigMaps and Secrets
-- [ ] Configure health checks and readiness probes
-- [ ] Set up horizontal pod autoscaling
+### Phase 6: Kubernetes Configuration with Helm
+- [ ] Create Helm charts for all services (one chart per microservice)
+- [ ] Create environment-specific values files (dev, staging, production)
+- [ ] Configure Helmfile for multi-service deployment
+- [ ] Set up HorizontalPodAutoscaler in charts
+- [ ] Configure PodDisruptionBudget for high availability
+- [ ] Set up External Secrets integration for Azure Key Vault
+- [ ] Create network policies chart
+- [ ] Validate all charts with `helm lint`
 
 ### Phase 7: Azure Infrastructure with Terraform
 - [ ] Deploy AKS cluster
