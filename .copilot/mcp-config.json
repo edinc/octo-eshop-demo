@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "playwright": {
+      "type": "local",
+      "command": "npx @playwright/mcp@latest",
+      "tools": ["*"]
+    },
+    "azure": {
+      "type": "local",
+      "command": "azmcp",
+      "tools": ["*"]
+    }
+  }
+}
