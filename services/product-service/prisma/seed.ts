@@ -2,6 +2,7 @@ import { PrismaClient, Category } from '.prisma/client-product';
 
 const prisma = new PrismaClient();
 
+// Using local bike images
 const bicycles = [
   {
     name: 'Trek Marlin 7',
@@ -10,7 +11,7 @@ const bicycles = [
     price: 1099.99,
     category: Category.mountain,
     brand: 'Trek',
-    images: ['/images/trek-marlin-7-1.jpg', '/images/trek-marlin-7-2.jpg'],
+    images: ['/images/trek-marlin-7.jpg'],
     stock: 15,
     featured: true,
     specifications: {
@@ -28,7 +29,7 @@ const bicycles = [
     price: 1299.99,
     category: Category.road,
     brand: 'Specialized',
-    images: ['/images/specialized-allez-1.jpg'],
+    images: ['/images/specialized-allez.jpg'],
     stock: 8,
     featured: true,
     specifications: {
@@ -46,7 +47,7 @@ const bicycles = [
     price: 549.99,
     category: Category.hybrid,
     brand: 'Giant',
-    images: ['/images/giant-escape-3-1.jpg'],
+    images: ['/images/giant-escape-3.jpg'],
     stock: 25,
     featured: false,
     specifications: {
@@ -64,7 +65,7 @@ const bicycles = [
     price: 5499.99,
     category: Category.electric,
     brand: 'Cannondale',
-    images: ['/images/cannondale-moterra-1.jpg'],
+    images: ['/images/cannondale-moterra.jpg'],
     stock: 5,
     featured: true,
     specifications: {
@@ -82,7 +83,7 @@ const bicycles = [
     price: 699.99,
     category: Category.kids,
     brand: 'Scott',
-    images: ['/images/scott-scale-junior-1.jpg'],
+    images: ['/images/scott-scale-junior.jpg'],
     stock: 12,
     featured: false,
     specifications: {
@@ -100,7 +101,7 @@ const bicycles = [
     price: 3299.99,
     category: Category.road,
     brand: 'Trek',
-    images: ['/images/trek-domane-sl5-1.jpg'],
+    images: ['/images/trek-domane.jpg'],
     stock: 6,
     featured: true,
     specifications: {
@@ -118,7 +119,7 @@ const bicycles = [
     price: 749.99,
     category: Category.mountain,
     brand: 'Specialized',
-    images: ['/images/specialized-rockhopper-1.jpg'],
+    images: ['/images/specialized-rockhopper.jpg'],
     stock: 20,
     featured: false,
     specifications: {
@@ -136,7 +137,7 @@ const bicycles = [
     price: 1599.99,
     category: Category.hybrid,
     brand: 'Giant',
-    images: ['/images/giant-revolt-2-1.jpg'],
+    images: ['/images/giant-revolt.jpg'],
     stock: 10,
     featured: false,
     specifications: {
@@ -154,7 +155,7 @@ const bicycles = [
     price: 7499.99,
     category: Category.electric,
     brand: 'Trek',
-    images: ['/images/trek-rail-97-1.jpg'],
+    images: ['/images/trek-rail.jpg'],
     stock: 3,
     featured: true,
     specifications: {
@@ -172,7 +173,7 @@ const bicycles = [
     price: 349.99,
     category: Category.kids,
     brand: 'Specialized',
-    images: ['/images/specialized-jett-16-1.jpg'],
+    images: ['/images/specialized-jett.jpg'],
     stock: 18,
     featured: false,
     specifications: {

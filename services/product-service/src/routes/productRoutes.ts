@@ -14,6 +14,8 @@ const productController = new ProductController(productService);
 router.get('/', productController.list);
 router.get('/search', productController.search);
 router.get('/categories', productController.getCategories);
+router.get('/featured', productController.getFeatured);
+router.get('/brands', productController.getBrands);
 router.get('/:id', productController.getById);
 
 // Admin routes (would typically have auth middleware)

@@ -1,8 +1,9 @@
-export function formatPrice(price: number): string {
+export function formatPrice(price: number | string): string {
+  const numericPrice = typeof price === 'string' ? parseFloat(price) : price;
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: 'USD',
-  }).format(price);
+  }).format(numericPrice);
 }
 
 export function formatDate(date: Date | string): string {

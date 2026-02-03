@@ -61,4 +61,12 @@ export class ProductService {
   async delete(id: string) {
     return this.productRepository.delete(id);
   }
+
+  async getFeatured(limit?: number) {
+    return this.productRepository.getFeatured(limit);
+  }
+
+  async getBrands() {
+    return this.productRepository.getBrands();
+  }
 }

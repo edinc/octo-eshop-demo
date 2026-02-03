@@ -6,7 +6,12 @@ import { ProductFilters } from '@/components/products/ProductFilters';
 import { ProductSearch } from '@/components/products/ProductSearch';
 import { useProducts, useCategories, useBrands } from '@/hooks/useProducts';
 import { useCart } from '@/hooks/useCart';
-import type { ProductFilters as FilterState, ProductCategory } from '@/types';
+import type {
+  Product,
+  PaginationMeta,
+  ProductFilters as FilterState,
+  ProductCategory,
+} from '@/types';
 
 export function ProductsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -26,6 +31,26 @@ export function ProductsPage() {
   const { data: categoriesData } = useCategories();
   const { data: brandsData } = useBrands();
   const { addToCart } = useCart();
+
+  // Extract data from API responses with type safety
+  // API format: { success: boolean, data?: T, meta?: {...} }
+  const productsResponse = productsData as
+    | { success?: boolean; data?: Product[]; meta?: PaginationMeta }
+    | undefined;
+  const products = productsResponse?.data || [];
+  const meta = productsResponse?.meta;
+
+  const categoriesResponse = categoriesData as { data?: string[] } | undefined;
+  const categories: ProductCategory[] = (categoriesResponse?.data as ProductCategory[]) || [
+    'mountain',
+    'road',
+    'hybrid',
+    'electric',
+    'kids',
+  ];
+
+  const brandsResponse = brandsData as { data?: string[] } | undefined;
+  const brands: string[] = brandsResponse?.data || [];
 
   useEffect(() => {
     const params = new URLSearchParams();
@@ -47,27 +72,17 @@ export function ProductsPage() {
   };
 
   const handleAddToCart = (productId: string) => {
-    const product = productsData?.data?.products.find(p => p.id === productId);
+    const product = products.find(p => p.id === productId);
     if (product) {
+      const price = typeof product.price === 'string' ? parseFloat(product.price) : product.price;
       addToCart({
         productId: product.id,
         name: product.name,
-        price: product.price,
+        price,
         quantity: 1,
       });
     }
   };
-
-  const products = productsData?.data?.products || [];
-  const meta = productsData?.data?.meta;
-  const categories: ProductCategory[] = (categoriesData?.data as ProductCategory[]) || [
-    'mountain',
-    'road',
-    'hybrid',
-    'electric',
-    'kids',
-  ];
-  const brands = brandsData?.data || [];
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

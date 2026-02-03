@@ -154,4 +154,23 @@ export class ProductController {
       next(error);
     }
   };
+
+  getFeatured = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const limit = req.query['limit'] ? Number(req.query['limit']) : undefined;
+      const products = await this.productService.getFeatured(limit);
+      res.json(successResponse(products));
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  getBrands = async (_req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const brands = await this.productService.getBrands();
+      res.json(successResponse(brands));
+    } catch (error) {
+      next(error);
+    }
+  };
 }

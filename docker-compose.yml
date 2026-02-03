@@ -1,8 +1,10 @@
-version: '3.8'
-
 services:
+  # ===================
+  # Databases
+  # ===================
   postgres-user:
     image: postgres:16-alpine
+    container_name: octo-postgres-user
     environment:
       POSTGRES_DB: userdb
       POSTGRES_USER: postgres
@@ -13,12 +15,15 @@ services:
       - postgres-user-data:/var/lib/postgresql/data
     healthcheck:
       test: ['CMD-SHELL', 'pg_isready -U postgres']
-      interval: 5s
+      interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - octo-network
 
   postgres-product:
     image: postgres:16-alpine
+    container_name: octo-postgres-product
     environment:
       POSTGRES_DB: productdb
       POSTGRES_USER: postgres
@@ -29,12 +34,15 @@ services:
       - postgres-product-data:/var/lib/postgresql/data
     healthcheck:
       test: ['CMD-SHELL', 'pg_isready -U postgres']
-      interval: 5s
+      interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - octo-network
 
   postgres-order:
     image: postgres:16-alpine
+    container_name: octo-postgres-order
     environment:
       POSTGRES_DB: orderdb
       POSTGRES_USER: postgres
@@ -45,24 +53,201 @@ services:
       - postgres-order-data:/var/lib/postgresql/data
     healthcheck:
       test: ['CMD-SHELL', 'pg_isready -U postgres']
-      interval: 5s
+      interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - octo-network
 
   redis:
     image: redis:7-alpine
+    container_name: octo-redis
     ports:
       - '6379:6379'
     volumes:
       - redis-data:/data
+    command: redis-server --appendonly yes
     healthcheck:
       test: ['CMD', 'redis-cli', 'ping']
-      interval: 5s
+      interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - octo-network
+
+  # ===================
+  # Backend Services
+  # ===================
+  user-service:
+    build:
+      context: .
+      dockerfile: services/user-service/Dockerfile
+    container_name: octo-user-service
+    ports:
+      - '3001:3000'
+    environment:
+      NODE_ENV: development
+      PORT: 3000
+      DATABASE_URL: postgresql://postgres:postgres@postgres-user:5432/userdb
+      JWT_SECRET: dev-jwt-secret-change-in-production
+      JWT_EXPIRES_IN: 15m
+      REFRESH_TOKEN_EXPIRES_IN: 7d
+    depends_on:
+      postgres-user:
+        condition: service_healthy
+    healthcheck:
+      test: ['CMD', 'wget', '--spider', '-q', 'http://localhost:3000/health']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - octo-network
+
+  product-service:
+    build:
+      context: .
+      dockerfile: services/product-service/Dockerfile
+    container_name: octo-product-service
+    ports:
+      - '3002:3000'
+    environment:
+      NODE_ENV: development
+      PORT: 3000
+      DATABASE_URL: postgresql://postgres:postgres@postgres-product:5432/productdb
+    depends_on:
+      postgres-product:
+        condition: service_healthy
+    healthcheck:
+      test: ['CMD', 'wget', '--spider', '-q', 'http://localhost:3000/health']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - octo-network
+
+  cart-service:
+    build:
+      context: .
+      dockerfile: services/cart-service/Dockerfile
+    container_name: octo-cart-service
+    ports:
+      - '3003:3000'
+    environment:
+      NODE_ENV: development
+      PORT: 3000
+      REDIS_URL: redis://redis:6379
+      PRODUCT_SERVICE_URL: http://product-service:3000
+    depends_on:
+      redis:
+        condition: service_healthy
+      product-service:
+        condition: service_healthy
+    healthcheck:
+      test: ['CMD', 'wget', '--spider', '-q', 'http://localhost:3000/health']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - octo-network
+
+  order-service:
+    build:
+      context: .
+      dockerfile: services/order-service/Dockerfile
+    container_name: octo-order-service
+    ports:
+      - '3004:3000'
+    environment:
+      NODE_ENV: development
+      PORT: 3000
+      DATABASE_URL: postgresql://postgres:postgres@postgres-order:5432/orderdb
+      CART_SERVICE_URL: http://cart-service:3000
+      PAYMENT_SERVICE_URL: http://payment-service:3000
+      PRODUCT_SERVICE_URL: http://product-service:3000
+    depends_on:
+      postgres-order:
+        condition: service_healthy
+      cart-service:
+        condition: service_healthy
+      payment-service:
+        condition: service_healthy
+    healthcheck:
+      test: ['CMD', 'wget', '--spider', '-q', 'http://localhost:3000/health']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - octo-network
+
+  payment-service:
+    build:
+      context: .
+      dockerfile: services/payment-service/Dockerfile
+    container_name: octo-payment-service
+    ports:
+      - '3005:3000'
+    environment:
+      NODE_ENV: development
+      PORT: 3000
+    healthcheck:
+      test: ['CMD', 'wget', '--spider', '-q', 'http://localhost:3000/health']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - octo-network
+
+  # ===================
+  # API Gateway
+  # ===================
+  api-gateway:
+    image: kong:3.5
+    container_name: octo-api-gateway
+    environment:
+      KONG_DATABASE: 'off'
+      KONG_DECLARATIVE_CONFIG: /kong/declarative/kong.yml
+      KONG_PROXY_ACCESS_LOG: /dev/stdout
+      KONG_ADMIN_ACCESS_LOG: /dev/stdout
+      KONG_PROXY_ERROR_LOG: /dev/stderr
+      KONG_ADMIN_ERROR_LOG: /dev/stderr
+      KONG_ADMIN_LISTEN: 0.0.0.0:8001
+    ports:
+      - '8080:8000'
+      - '8081:8001'
+    volumes:
+      - ./kong:/kong/declarative
+    depends_on:
+      - user-service
+      - product-service
+      - cart-service
+      - order-service
+      - payment-service
+    networks:
+      - octo-network
+
+  # ===================
+  # Frontend
+  # ===================
+  frontend:
+    build:
+      context: .
+      dockerfile: services/frontend/Dockerfile
+      args:
+        VITE_API_URL: /api
+    container_name: octo-frontend
+    ports:
+      - '3000:80'
+    depends_on:
+      - api-gateway
+    networks:
+      - octo-network
 
 volumes:
   postgres-user-data:
   postgres-product-data:
   postgres-order-data:
   redis-data:
+
+networks:
+  octo-network:
+    driver: bridge

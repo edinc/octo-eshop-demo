@@ -69,6 +69,8 @@ export function ProductDetailPage() {
             <img
               src={product.images[selectedImage] || '/images/placeholder-bike.jpg'}
               alt={product.name}
+              loading="eager"
+              decoding="async"
               className="w-full h-full object-cover"
               onError={e => {
                 const target = e.target as HTMLImageElement;
@@ -86,7 +88,13 @@ export function ProductDetailPage() {
                     selectedImage === index ? 'border-primary-600' : 'border-transparent'
                   }`}
                 >
-                  <img src={image} alt="" className="w-full h-full object-cover" />
+                  <img
+                    src={image}
+                    alt=""
+                    loading="lazy"
+                    decoding="async"
+                    className="w-full h-full object-cover"
+                  />
                 </button>
               ))}
             </div>

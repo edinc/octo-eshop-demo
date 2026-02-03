@@ -1,15 +1,8 @@
 import api from './api';
-import type { ApiResponse, Product, PaginationMeta, ProductFilters } from '@/types';
-
-interface ProductListResponse {
-  products: Product[];
-  meta: PaginationMeta;
-}
+import type { ApiResponse, Product, ProductFilters } from '@/types';
 
 export const productService = {
-  async getProducts(
-    filters: Partial<ProductFilters> = {}
-  ): Promise<ApiResponse<ProductListResponse>> {
+  async getProducts(filters: Partial<ProductFilters> = {}): Promise<ApiResponse<Product[]>> {
     const params = new URLSearchParams();
 
     if (filters.category) params.append('category', filters.category);
@@ -22,9 +15,7 @@ export const productService = {
     if (filters.page) params.append('page', filters.page.toString());
     if (filters.limit) params.append('limit', filters.limit.toString());
 
-    const response = await api.get<ApiResponse<ProductListResponse>>(
-      `/products?${params.toString()}`
-    );
+    const response = await api.get<ApiResponse<Product[]>>(`/products?${params.toString()}`);
     return response.data;
   },
 
