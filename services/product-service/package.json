@@ -1,0 +1,41 @@
+{
+  "name": "@octo-eshop/product-service",
+  "version": "1.0.0",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsx watch src/index.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "eslint src/",
+    "migrate": "prisma migrate dev",
+    "migrate:deploy": "prisma migrate deploy",
+    "db:generate": "prisma generate",
+    "db:seed": "tsx prisma/seed.ts"
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
+  },
+  "dependencies": {
+    "@octo-eshop/types": "*",
+    "@octo-eshop/utils": "*",
+    "@prisma/client": "^5.8.0",
+    "express": "^4.18.2",
+    "zod": "^3.22.4",
+    "cors": "^2.8.5",
+    "helmet": "^7.1.0",
+    "morgan": "^1.10.0",
+    "dotenv": "^16.3.1"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/cors": "^2.8.17",
+    "@types/morgan": "^1.9.9",
+    "prisma": "^5.8.0",
+    "tsx": "^4.7.0",
+    "vitest": "^1.2.0",
+    "supertest": "^6.3.4",
+    "@types/supertest": "^6.0.2"
+  }
+}
