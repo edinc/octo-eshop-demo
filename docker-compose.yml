@@ -33,6 +33,22 @@ services:
       timeout: 5s
       retries: 5
 
+  postgres-order:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: orderdb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - '5434:5432'
+    volumes:
+      - postgres-order-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
   redis:
     image: redis:7-alpine
     ports:
@@ -48,4 +64,5 @@ services:
 volumes:
   postgres-user-data:
   postgres-product-data:
+  postgres-order-data:
   redis-data:
