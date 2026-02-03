@@ -1,0 +1,49 @@
+services:
+  user-service:
+    build:
+      target: builder
+    volumes:
+      - ./services/user-service/src:/app/services/user-service/src
+      - ./shared:/app/shared
+    command: npm run dev --workspace=@octo-eshop/user-service
+
+  product-service:
+    build:
+      target: builder
+    volumes:
+      - ./services/product-service/src:/app/services/product-service/src
+      - ./shared:/app/shared
+    command: npm run dev --workspace=@octo-eshop/product-service
+
+  cart-service:
+    build:
+      target: builder
+    volumes:
+      - ./services/cart-service/src:/app/services/cart-service/src
+      - ./shared:/app/shared
+    command: npm run dev --workspace=@octo-eshop/cart-service
+
+  order-service:
+    build:
+      target: builder
+    volumes:
+      - ./services/order-service/src:/app/services/order-service/src
+      - ./shared:/app/shared
+    command: npm run dev --workspace=@octo-eshop/order-service
+
+  payment-service:
+    build:
+      target: builder
+    volumes:
+      - ./services/payment-service/src:/app/services/payment-service/src
+      - ./shared:/app/shared
+    command: npm run dev --workspace=@octo-eshop/payment-service
+
+  frontend:
+    build:
+      target: builder
+    volumes:
+      - ./services/frontend/src:/app/services/frontend/src
+    command: npm run dev --workspace=@octo-eshop/frontend -- --host
+    ports:
+      - '3000:5173'
