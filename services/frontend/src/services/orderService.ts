@@ -9,6 +9,10 @@ interface OrderListResponse {
 interface CreateOrderRequest {
   shippingAddress: Omit<UserAddress, 'id' | 'userId' | 'isDefault'>;
   paymentMethod: string;
+  paymentDetails?: {
+    lastFour: string;
+    cardholderName: string;
+  };
 }
 
 export const orderService = {

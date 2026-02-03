@@ -19,6 +19,19 @@ api.interceptors.request.use(config => {
   return config;
 });
 
+// Token refresh state to prevent race conditions
+let isRefreshing = false;
+let refreshSubscribers: ((token: string) => void)[] = [];
+
+function subscribeTokenRefresh(cb: (token: string) => void) {
+  refreshSubscribers.push(cb);
+}
+
+function onTokenRefreshed(token: string) {
+  refreshSubscribers.forEach(cb => cb(token));
+  refreshSubscribers = [];
+}
+
 // Response interceptor for token refresh
 api.interceptors.response.use(
   response => response,
@@ -26,7 +39,18 @@ api.interceptors.response.use(
     const originalRequest = error.config;
 
     if (error.response?.status === 401 && !originalRequest._retry) {
+      if (isRefreshing) {
+        // Wait for the ongoing refresh to complete
+        return new Promise(resolve => {
+          subscribeTokenRefresh(token => {
+            originalRequest.headers.Authorization = `Bearer ${token}`;
+            resolve(api(originalRequest));
+          });
+        });
+      }
+
       originalRequest._retry = true;
+      isRefreshing = true;
 
       try {
         const refreshToken = localStorage.getItem('refreshToken');
@@ -36,16 +60,22 @@ api.interceptors.response.use(
           >(`${API_BASE_URL}/auth/refresh`, { refreshToken });
 
           if (response.data.success && response.data.data) {
-            localStorage.setItem('accessToken', response.data.data.accessToken);
+            const newAccessToken = response.data.data.accessToken;
+            localStorage.setItem('accessToken', newAccessToken);
             localStorage.setItem('refreshToken', response.data.data.refreshToken);
-            originalRequest.headers.Authorization = `Bearer ${response.data.data.accessToken}`;
+            originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+            onTokenRefreshed(newAccessToken);
             return api(originalRequest);
           }
         }
+        throw new Error('No refresh token');
       } catch {
         localStorage.removeItem('accessToken');
         localStorage.removeItem('refreshToken');
+        refreshSubscribers = [];
         window.location.href = '/login';
+      } finally {
+        isRefreshing = false;
       }
     }
 

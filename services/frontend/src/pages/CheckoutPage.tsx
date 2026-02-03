@@ -36,13 +36,21 @@ export function CheckoutPage() {
     setStep('payment');
   };
 
-  const handlePaymentSubmit = async (_data: PaymentFormData) => {
+  const handlePaymentSubmit = async (paymentData: PaymentFormData) => {
     if (!shippingAddress) return;
 
     try {
+      // Note: In production, payment data should be tokenized via a payment processor
+      // (e.g., Stripe, PayPal) on the client side before sending to backend.
+      // The backend payment-service will handle the mock payment processing.
       const response = await createOrder.mutateAsync({
         shippingAddress,
         paymentMethod: 'card',
+        // Send last 4 digits only for display purposes (actual processing happens server-side)
+        paymentDetails: {
+          lastFour: paymentData.cardNumber.slice(-4),
+          cardholderName: paymentData.cardholderName,
+        },
       });
 
       if (response.success && response.data) {

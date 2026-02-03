@@ -3,7 +3,9 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { RootState } from '@/store';
 import { setCredentials, logout as logoutAction, setUser } from '@/store/authSlice';
+import { setCartItems } from '@/store/cartSlice';
 import authService from '@/services/authService';
+import cartService from '@/services/cartService';
 import type { LoginFormData, RegisterFormData } from '@/utils/validators';
 
 export function useAuth() {
@@ -22,9 +24,35 @@ export function useAuth() {
     dispatch(setUser(profileData.data));
   }
 
+  // Sync local cart to server after authentication
+  const syncCartAfterAuth = useCallback(async () => {
+    const localCart = cartService.getLocalCart();
+    if (localCart.length > 0) {
+      try {
+        // Add each local cart item to server cart
+        for (const item of localCart) {
+          await cartService.addToCart(item.productId, item.quantity);
+        }
+        // Clear local cart after syncing
+        cartService.clearLocalCart();
+      } catch (error) {
+        console.error('Failed to sync cart:', error);
+      }
+    }
+    // Fetch the updated server cart
+    try {
+      const serverCart = await cartService.getCart();
+      if (serverCart.data) {
+        dispatch(setCartItems(serverCart.data.items));
+      }
+    } catch (error) {
+      console.error('Failed to fetch server cart:', error);
+    }
+  }, [dispatch]);
+
   const loginMutation = useMutation({
     mutationFn: (data: LoginFormData) => authService.login(data),
-    onSuccess: response => {
+    onSuccess: async response => {
       if (response.success && response.data) {
         dispatch(
           setCredentials({
@@ -33,13 +61,15 @@ export function useAuth() {
             refreshToken: response.data.refreshToken,
           })
         );
+        // Sync cart after successful login
+        await syncCartAfterAuth();
       }
     },
   });
 
   const registerMutation = useMutation({
     mutationFn: (data: Omit<RegisterFormData, 'confirmPassword'>) => authService.register(data),
-    onSuccess: response => {
+    onSuccess: async response => {
       if (response.success && response.data) {
         dispatch(
           setCredentials({
@@ -48,6 +78,8 @@ export function useAuth() {
             refreshToken: response.data.refreshToken,
           })
         );
+        // Sync cart after successful registration
+        await syncCartAfterAuth();
       }
     },
   });

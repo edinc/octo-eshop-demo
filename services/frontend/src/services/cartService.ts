@@ -29,8 +29,29 @@ export const cartService = {
 
   // Local cart operations for non-authenticated users
   getLocalCart(): CartItem[] {
-    const cart = localStorage.getItem('cart');
-    return cart ? JSON.parse(cart) : [];
+    try {
+      const cart = localStorage.getItem('cart');
+      if (!cart) return [];
+
+      const parsed = JSON.parse(cart);
+
+      // Validate it's an array with expected CartItem properties
+      if (!Array.isArray(parsed)) return [];
+
+      return parsed.filter(
+        (item): item is CartItem =>
+          typeof item === 'object' &&
+          item !== null &&
+          typeof item.productId === 'string' &&
+          typeof item.quantity === 'number' &&
+          typeof item.price === 'number' &&
+          typeof item.name === 'string'
+      );
+    } catch {
+      // If parsing fails or data is corrupted, return empty cart
+      localStorage.removeItem('cart');
+      return [];
+    }
   },
 
   setLocalCart(items: CartItem[]): void {

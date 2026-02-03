@@ -24,6 +24,10 @@ export function useCreateOrder() {
     mutationFn: (data: {
       shippingAddress: Omit<UserAddress, 'id' | 'userId' | 'isDefault'>;
       paymentMethod: string;
+      paymentDetails?: {
+        lastFour: string;
+        cardholderName: string;
+      };
     }) => orderService.createOrder(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['orders'] });
