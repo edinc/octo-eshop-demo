@@ -1,0 +1,30 @@
+{
+  "name": "octo-eshop",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "services/*",
+    "shared/*"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present",
+    "dev": "docker-compose up -d",
+    "clean": "rm -rf node_modules && npm run clean --workspaces --if-present"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.0",
+    "eslint": "^8.56.0",
+    "prettier": "^3.2.0",
+    "@typescript-eslint/eslint-plugin": "^6.19.0",
+    "@typescript-eslint/parser": "^6.19.0",
+    "eslint-config-prettier": "^9.1.0",
+    "husky": "^9.0.0",
+    "lint-staged": "^15.2.0"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
+  }
+}
