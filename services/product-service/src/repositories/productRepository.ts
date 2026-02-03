@@ -95,16 +95,13 @@ export class ProductRepository {
     return { products, total };
   }
 
-  async getCategories(): Promise<{ category: Category; count: number }[]> {
-    const result = await this.prisma.product.groupBy({
-      by: ['category'],
-      _count: { id: true },
+  async getCategories(): Promise<Category[]> {
+    const result = await this.prisma.product.findMany({
+      select: { category: true },
+      distinct: ['category'],
+      orderBy: { category: 'asc' },
     });
-
-    return result.map(r => ({
-      category: r.category,
-      count: r._count.id,
-    }));
+    return result.map(r => r.category);
   }
 
   async create(data: Prisma.ProductCreateInput): Promise<Product> {
@@ -126,5 +123,23 @@ export class ProductRepository {
     await this.prisma.product.delete({
       where: { id },
     });
+  }
+
+  async getFeatured(limit: number = 8): Promise<Product[]> {
+    return this.prisma.product.findMany({
+      where: { featured: true },
+      include: { specifications: true },
+      take: limit,
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  async getBrands(): Promise<string[]> {
+    const result = await this.prisma.product.findMany({
+      select: { brand: true },
+      distinct: ['brand'],
+      orderBy: { brand: 'asc' },
+    });
+    return result.map(r => r.brand);
   }
 }

@@ -17,6 +17,8 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
           <img
             src={product.images[0] || '/images/placeholder-bike.jpg'}
             alt={product.name}
+            loading="lazy"
+            decoding="async"
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
             onError={e => {
               const target = e.target as HTMLImageElement;
