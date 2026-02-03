@@ -201,7 +201,7 @@ services:
   # API Gateway
   # ===================
   api-gateway:
-    image: kong:3.5-alpine
+    image: kong:3.5
     container_name: octo-api-gateway
     environment:
       KONG_DATABASE: 'off'
@@ -233,7 +233,7 @@ services:
       context: .
       dockerfile: services/frontend/Dockerfile
       args:
-        VITE_API_URL: http://localhost:8080/api
+        VITE_API_URL: /api
     container_name: octo-frontend
     ports:
       - '3000:80'

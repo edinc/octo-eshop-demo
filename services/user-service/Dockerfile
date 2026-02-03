@@ -1,7 +1,10 @@
 # Stage 1: Build
-FROM node:20-alpine AS builder
+FROM node:20-slim AS builder
 
 WORKDIR /app
+
+# Install OpenSSL for Prisma
+RUN apt-get update && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
 
 # Copy workspace files
 COPY package.json package-lock.json tsconfig.base.json tsconfig.json ./
@@ -9,8 +12,8 @@ COPY services/user-service/package.json ./services/user-service/
 COPY shared/types/package.json ./shared/types/
 COPY shared/utils/package.json ./shared/utils/
 
-# Install dependencies
-RUN npm ci --workspace=@octo-eshop/user-service --workspace=@octo-eshop/types --workspace=@octo-eshop/utils
+# Install all dependencies (including devDependencies for build)
+RUN npm ci
 
 # Copy source code
 COPY shared/ ./shared/
@@ -27,19 +30,26 @@ RUN npm run build --workspace=@octo-eshop/utils
 RUN npm run build --workspace=@octo-eshop/user-service
 
 # Stage 2: Production
-FROM node:20-alpine AS production
+FROM node:20-slim AS production
 
 WORKDIR /app
 
+# Install OpenSSL for Prisma
+RUN apt-get update && apt-get install -y openssl wget && rm -rf /var/lib/apt/lists/*
+
 # Add non-root user for security
-RUN addgroup -g 1001 -S nodejs && \
-    adduser -S nodejs -u 1001
+RUN groupadd -g 1001 nodejs && \
+    useradd -u 1001 -g nodejs nodejs
 
 # Copy built files
 COPY --from=builder /app/services/user-service/dist ./dist
 COPY --from=builder /app/services/user-service/package.json ./
-COPY --from=builder /app/services/user-service/node_modules ./node_modules
+COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/services/user-service/prisma ./prisma
+COPY --from=builder /app/shared ./shared
+
+# Generate Prisma client for this platform
+RUN npx prisma generate --schema=prisma/schema.prisma
 
 # Set ownership
 RUN chown -R nodejs:nodejs /app

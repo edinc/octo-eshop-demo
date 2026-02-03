@@ -1,5 +1,5 @@
 # Stage 1: Build
-FROM node:20-alpine AS builder
+FROM node:20-slim AS builder
 
 WORKDIR /app
 
@@ -8,8 +8,8 @@ COPY package.json package-lock.json tsconfig.base.json tsconfig.json ./
 COPY services/frontend/package.json ./services/frontend/
 COPY shared/types/package.json ./shared/types/
 
-# Install dependencies
-RUN npm ci --workspace=@octo-eshop/frontend --workspace=@octo-eshop/types
+# Install all dependencies (including devDependencies for build)
+RUN npm ci
 
 # Copy source code
 COPY shared/types/ ./shared/types/
