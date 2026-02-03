@@ -1,0 +1,101 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../../../node_modules/.prisma/client-order"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Order {
+  id          String      @id @default(uuid())
+  userId      String      @map("user_id")
+  status      OrderStatus @default(pending)
+  totalAmount Decimal     @map("total_amount") @db.Decimal(10, 2)
+  currency    String      @default("USD")
+  createdAt   DateTime    @default(now()) @map("created_at")
+  updatedAt   DateTime    @updatedAt @map("updated_at")
+
+  items           OrderItem[]
+  shippingAddress ShippingAddress?
+  statusHistory   OrderStatusHistory[]
+  payment         Payment?
+
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("orders")
+}
+
+model OrderItem {
+  id              String  @id @default(uuid())
+  orderId         String  @map("order_id")
+  productId       String  @map("product_id")
+  productName     String  @map("product_name")
+  quantity        Int
+  priceAtPurchase Decimal @map("price_at_purchase") @db.Decimal(10, 2)
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@map("order_items")
+}
+
+model ShippingAddress {
+  id         String @id @default(uuid())
+  orderId    String @unique @map("order_id")
+  street     String
+  city       String
+  state      String
+  postalCode String @map("postal_code")
+  country    String
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@map("shipping_addresses")
+}
+
+model OrderStatusHistory {
+  id        String      @id @default(uuid())
+  orderId   String      @map("order_id")
+  status    OrderStatus
+  note      String?
+  createdAt DateTime    @default(now()) @map("created_at")
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@map("order_status_history")
+}
+
+model Payment {
+  id            String        @id @default(uuid())
+  orderId       String        @unique @map("order_id")
+  amount        Decimal       @db.Decimal(10, 2)
+  currency      String        @default("USD")
+  status        PaymentStatus @default(pending)
+  transactionId String?       @map("transaction_id")
+  failureReason String?       @map("failure_reason")
+  createdAt     DateTime      @default(now()) @map("created_at")
+  updatedAt     DateTime      @updatedAt @map("updated_at")
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@map("payments")
+}
+
+enum OrderStatus {
+  pending
+  paid
+  processing
+  shipped
+  delivered
+  cancelled
+  refunded
+}
+
+enum PaymentStatus {
+  pending
+  completed
+  failed
+  refunded
+}
