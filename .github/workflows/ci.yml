@@ -67,8 +67,16 @@ jobs:
           cd services/user-service && npx prisma generate
           cd ../product-service && npx prisma generate
 
-      - name: Build
-        run: npm run build
+      - name: Build shared packages
+        run: |
+          npm run build --workspace=shared/types
+          npm run build --workspace=shared/utils
+
+      - name: Build services
+        run: |
+          npm run build --workspace=services/user-service
+          npm run build --workspace=services/product-service
+          npm run build --workspace=services/cart-service
 
       - name: Lint
         run: npm run lint
