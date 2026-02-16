@@ -152,7 +152,7 @@ Each service owns its database - no shared schemas. Use API calls for cross-serv
 
 1. Create a feature branch for each new implementation (e.g., `feature/phase-02-user-service`)
 2. Implement the changes
-3. Run `/review` to check the code before opening a PR
+3. Run `/review` with 3 different agents in parallel (Opus, Gemini and Codex). Compare their feedback and suggestions.
 4. Fix any issues identified by the review
 5. Open a PR to merge into main
 
