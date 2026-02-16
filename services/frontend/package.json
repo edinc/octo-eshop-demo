@@ -15,7 +15,7 @@
     "@octo-eshop/types": "file:../../shared/types",
     "@reduxjs/toolkit": "^2.0.1",
     "@tanstack/react-query": "^5.17.0",
-    "axios": "^1.6.5",
+    "axios": "^1.13.5",
     "clsx": "^2.1.0",
     "lucide-react": "^0.303.0",
     "react": "^18.2.0",
