@@ -8,6 +8,7 @@ build/
 
 # Test coverage
 coverage/
+services/frontend/test-results/
 
 # Environment files
 .env
