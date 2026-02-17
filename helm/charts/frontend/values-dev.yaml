@@ -1,0 +1,22 @@
+replicaCount: 1
+
+image:
+  tag: "dev"
+
+autoscaling:
+  enabled: false
+
+pdb:
+  enabled: false
+
+resources:
+  requests:
+    memory: "32Mi"
+    cpu: "25m"
+  limits:
+    memory: "128Mi"
+    cpu: "100m"
+
+config:
+  nodeEnv: "development"
+  logLevel: "debug"

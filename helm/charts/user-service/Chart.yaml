@@ -1,0 +1,14 @@
+apiVersion: v2
+name: user-service
+description: User authentication and profile management service for Octo E-Shop
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
+keywords:
+  - octo-eshop
+  - microservice
+  - user
+  - authentication
+maintainers:
+  - name: Platform Team
+    email: platform@octo-eshop.example.com

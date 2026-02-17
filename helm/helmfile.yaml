@@ -1,0 +1,79 @@
+repositories: []
+
+environments:
+  dev:
+    values:
+      - environments/dev.yaml
+  staging:
+    values:
+      - environments/staging.yaml
+  production:
+    values:
+      - environments/production.yaml
+
+---
+
+releases:
+  - name: network-policies
+    namespace: octo-eshop-{{ .Environment.Name }}
+    chart: ./charts/network-policies
+
+  - name: user-service
+    namespace: octo-eshop-{{ .Environment.Name }}
+    chart: ./charts/user-service
+    values:
+      - charts/user-service/values.yaml
+      - charts/user-service/values-{{ .Environment.Name }}.yaml
+    set:
+      - name: image.tag
+        value: {{ .Environment.Values.imageTag | default "latest" }}
+
+  - name: product-service
+    namespace: octo-eshop-{{ .Environment.Name }}
+    chart: ./charts/product-service
+    values:
+      - charts/product-service/values.yaml
+      - charts/product-service/values-{{ .Environment.Name }}.yaml
+    set:
+      - name: image.tag
+        value: {{ .Environment.Values.imageTag | default "latest" }}
+
+  - name: cart-service
+    namespace: octo-eshop-{{ .Environment.Name }}
+    chart: ./charts/cart-service
+    values:
+      - charts/cart-service/values.yaml
+      - charts/cart-service/values-{{ .Environment.Name }}.yaml
+    set:
+      - name: image.tag
+        value: {{ .Environment.Values.imageTag | default "latest" }}
+
+  - name: order-service
+    namespace: octo-eshop-{{ .Environment.Name }}
+    chart: ./charts/order-service
+    values:
+      - charts/order-service/values.yaml
+      - charts/order-service/values-{{ .Environment.Name }}.yaml
+    set:
+      - name: image.tag
+        value: {{ .Environment.Values.imageTag | default "latest" }}
+
+  - name: payment-service
+    namespace: octo-eshop-{{ .Environment.Name }}
+    chart: ./charts/payment-service
+    values:
+      - charts/payment-service/values.yaml
+      - charts/payment-service/values-{{ .Environment.Name }}.yaml
+    set:
+      - name: image.tag
+        value: {{ .Environment.Values.imageTag | default "latest" }}
+
+  - name: frontend
+    namespace: octo-eshop-{{ .Environment.Name }}
+    chart: ./charts/frontend
+    values:
+      - charts/frontend/values.yaml
+      - charts/frontend/values-{{ .Environment.Name }}.yaml
+    set:
+      - name: image.tag
+        value: {{ .Environment.Values.imageTag | default "latest" }}

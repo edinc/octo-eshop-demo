@@ -1,0 +1,25 @@
+replicaCount: 2
+
+image:
+  tag: "staging"
+
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 5
+
+resources:
+  requests:
+    memory: "128Mi"
+    cpu: "100m"
+  limits:
+    memory: "384Mi"
+    cpu: "400m"
+
+config:
+  nodeEnv: "staging"
+  logLevel: "info"
+
+externalSecrets:
+  enabled: true
+  secretStoreRef: azure-keyvault-staging
