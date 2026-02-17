@@ -130,6 +130,9 @@ jobs:
         run: npm test
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/userdb
+          USER_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/userdb
+          PRODUCT_DATABASE_URL: postgresql://postgres:postgres@localhost:5433/productdb
+          ORDER_DATABASE_URL: postgresql://postgres:postgres@localhost:5434/orderdb
           REDIS_URL: redis://localhost:6379
 
   security:
@@ -222,18 +225,23 @@ jobs:
       - name: Lint all charts
         run: |
           for chart in helm/charts/*/; do
-            echo "Linting $(basename $chart)..."
-            helm lint "$chart"
+            if [ -f "$chart/Chart.yaml" ]; then
+              echo "Linting $(basename $chart)..."
+              helm lint "$chart"
+            fi
           done
 
       - name: Template render test
         run: |
           for chart in helm/charts/*/; do
             name=$(basename "$chart")
+            if [ ! -f "$chart/Chart.yaml" ]; then
+              continue
+            fi
             echo "Templating $name..."
-            if [ "$name" = "network-policies" ]; then
-              helm template "$name" "$chart" > /dev/null
-            else
+            if [ -f "$chart/values-dev.yaml" ]; then
               helm template "$name" "$chart" -f "$chart/values-dev.yaml" > /dev/null
+            else
+              helm template "$name" "$chart" > /dev/null
             fi
           done

@@ -37,7 +37,7 @@ jobs:
         id: env
         run: |
           ENV=${{ github.event.inputs.environment || github.event.client_payload.environment }}
-          TAG=${{ github.event.inputs.image_tag || 'latest' }}
+          TAG=${{ github.event.inputs.image_tag || github.event.client_payload.image_tag || 'latest' }}
 
           echo "environment=${ENV}" >> "$GITHUB_OUTPUT"
           echo "image_tag=${TAG}" >> "$GITHUB_OUTPUT"

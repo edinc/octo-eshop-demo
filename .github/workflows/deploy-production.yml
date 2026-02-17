@@ -24,10 +24,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Validate confirmation
-        if: github.event.inputs.confirm != 'DEPLOY'
         run: |
-          echo "::error::You must type 'DEPLOY' to confirm production deployment"
-          exit 1
+          if [ "${{ github.event.inputs.confirm }}" != "DEPLOY" ]; then
+            echo "::error::You must type 'DEPLOY' to confirm production deployment"
+            exit 1
+          fi
+          echo "Confirmation validated"
 
   deploy:
     name: Deploy to Production
@@ -41,7 +43,7 @@ jobs:
       - name: Azure Login
         uses: azure/login@v2
         with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
+          creds: ${{ secrets.AZURE_CREDENTIALS_PROD }}
 
       - name: Get AKS credentials
         run: |
@@ -84,14 +86,6 @@ jobs:
               --set "image.tag=${TAG}" \
               --set "image.repository=${ACR_REGISTRY}/${service}" \
               --wait --timeout 10m
-          done
-
-      - name: Wait for rollout
-        run: |
-          NS="octo-eshop-production"
-          for deployment in user-service product-service cart-service order-service payment-service frontend; do
-            echo "Waiting for ${deployment}..."
-            kubectl rollout status deployment/"${deployment}" -n "${NS}" --timeout=600s
           done
 
       - name: Verify deployment

@@ -36,9 +36,16 @@ jobs:
 
       - name: Get AKS credentials
         run: |
+          if [ "${{ github.event.inputs.environment }}" == "production" ]; then
+            RG="${{ secrets.AKS_RESOURCE_GROUP_PROD }}"
+            CLUSTER="${{ secrets.AKS_CLUSTER_NAME_PROD }}"
+          else
+            RG="${{ secrets.AKS_RESOURCE_GROUP }}"
+            CLUSTER="${{ secrets.AKS_CLUSTER_NAME }}"
+          fi
           az aks get-credentials \
-            --resource-group ${{ secrets.AKS_RESOURCE_GROUP }} \
-            --name ${{ secrets.AKS_CLUSTER_NAME }} \
+            --resource-group "${RG}" \
+            --name "${CLUSTER}" \
             --overwrite-existing
 
       - name: Setup Helm

@@ -8,6 +8,10 @@ on:
       - 'shared/**'
       - '.github/workflows/build-push.yml'
 
+permissions:
+  contents: read
+  security-events: write
+
 env:
   ACR_REGISTRY: ${{ secrets.ACR_LOGIN_SERVER }}
 
@@ -50,6 +54,8 @@ jobs:
     name: Build ${{ matrix.service }}
     runs-on: ubuntu-latest
     needs: changes
+    outputs:
+      sha_short: ${{ steps.tags.outputs.sha_short }}
     if: >-
       needs.changes.outputs[matrix.service] == 'true' ||
       needs.changes.outputs.shared == 'true'
@@ -106,7 +112,7 @@ jobs:
             org.opencontainers.image.revision=${{ github.sha }}
 
       - name: Scan image for vulnerabilities
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@0.28.0
         with:
           image-ref: '${{ env.ACR_REGISTRY }}/${{ matrix.service }}:${{ steps.tags.outputs.sha_short }}'
           format: 'sarif'
@@ -135,5 +141,6 @@ jobs:
             {
               "ref": "${{ github.ref }}",
               "sha": "${{ github.sha }}",
-              "environment": "${{ github.ref == 'refs/heads/main' && 'staging' || 'dev' }}"
+              "environment": "${{ github.ref == 'refs/heads/main' && 'staging' || 'dev' }}",
+              "image_tag": "${{ github.ref == 'refs/heads/main' && 'latest' || format('{0}-{1}', github.ref_name, needs.build-push.outputs.sha_short) }}"
             }
