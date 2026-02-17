@@ -35,6 +35,8 @@ npm-debug.log*
 *.tfstate.*
 .terraform/
 *.tfvars
+*.tfplan
+tfplan
 
 # Docker
 .docker/
