@@ -8,3 +8,12 @@ data:
   NODE_ENV: {{ .Values.config.nodeEnv | quote }}
   PORT: {{ .Values.config.port | quote }}
   LOG_LEVEL: {{ .Values.config.logLevel | quote }}
+  {{- if .Values.config.cartServiceUrl }}
+  CART_SERVICE_URL: {{ .Values.config.cartServiceUrl | quote }}
+  {{- end }}
+  {{- if .Values.config.paymentServiceUrl }}
+  PAYMENT_SERVICE_URL: {{ .Values.config.paymentServiceUrl | quote }}
+  {{- end }}
+  {{- if .Values.config.productServiceUrl }}
+  PRODUCT_SERVICE_URL: {{ .Values.config.productServiceUrl | quote }}
+  {{- end }}

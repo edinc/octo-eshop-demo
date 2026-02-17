@@ -27,3 +27,4 @@ externalSecrets:
 secrets:
   DATABASE_URL: "postgresql://postgres:postgres@postgres-order:5432/orderdb"
   SERVICEBUS_CONNECTION_STRING: "dev-servicebus-not-for-production"
+  SERVICE_AUTH_TOKEN: "dev-service-auth-token"

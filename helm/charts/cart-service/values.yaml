@@ -102,12 +102,13 @@ config:
   nodeEnv: "production"
   port: "3000"
   logLevel: "info"
+  productServiceUrl: "http://product-service"
 
 externalSecrets:
   enabled: true
   secretStoreRef: azure-keyvault
   secrets:
-    - key: redis-url
+    - key: REDIS_URL
       remoteRef: redis-connection-string
 
 secrets: {}

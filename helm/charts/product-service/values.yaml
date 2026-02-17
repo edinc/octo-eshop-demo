@@ -107,7 +107,7 @@ externalSecrets:
   enabled: true
   secretStoreRef: azure-keyvault
   secrets:
-    - key: database-url
+    - key: DATABASE_URL
       remoteRef: product-db-connection-string
 
 secrets: {}

@@ -102,14 +102,17 @@ config:
   nodeEnv: "production"
   port: "3000"
   logLevel: "info"
+  cartServiceUrl: "http://cart-service"
+  paymentServiceUrl: "http://payment-service"
+  productServiceUrl: "http://product-service"
 
 externalSecrets:
   enabled: true
   secretStoreRef: azure-keyvault
   secrets:
-    - key: database-url
+    - key: DATABASE_URL
       remoteRef: order-db-connection-string
-    - key: servicebus-connection-string
+    - key: SERVICEBUS_CONNECTION_STRING
       remoteRef: servicebus-connection-string
 
 secrets: {}

@@ -48,6 +48,7 @@ Selector labels
 {{- define "service.selectorLabels" -}}
 app.kubernetes.io/name: {{ include "service.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
+app.kubernetes.io/part-of: octo-eshop
 {{- end }}
 
 {{/*

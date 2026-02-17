@@ -111,9 +111,9 @@ externalSecrets:
   enabled: true
   secretStoreRef: azure-keyvault
   secrets:
-    - key: database-url
+    - key: DATABASE_URL
       remoteRef: user-db-connection-string
-    - key: jwt-secret
+    - key: JWT_SECRET
       remoteRef: jwt-secret
 
 secrets: {}

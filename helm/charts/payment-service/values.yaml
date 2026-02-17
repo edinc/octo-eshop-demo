@@ -107,7 +107,7 @@ externalSecrets:
   enabled: true
   secretStoreRef: azure-keyvault
   secrets:
-    - key: servicebus-connection-string
+    - key: SERVICEBUS_CONNECTION_STRING
       remoteRef: servicebus-connection-string
 
 secrets: {}

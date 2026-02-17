@@ -26,3 +26,4 @@ externalSecrets:
 
 secrets:
   SERVICEBUS_CONNECTION_STRING: "dev-servicebus-not-for-production"
+  SERVICE_AUTH_TOKEN: "dev-service-auth-token"
