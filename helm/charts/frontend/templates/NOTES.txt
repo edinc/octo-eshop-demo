@@ -1,0 +1,25 @@
+Thank you for installing {{ .Chart.Name }}.
+
+Your release is named {{ .Release.Name }}.
+
+To learn more about the release, try:
+
+  $ helm status {{ .Release.Name }}
+  $ helm get all {{ .Release.Name }}
+
+{{- if .Values.ingress.enabled }}
+
+The service is available at:
+{{- range .Values.ingress.hosts }}
+  http{{ if $.Values.ingress.tls }}s{{ end }}://{{ .host }}{{ (first .paths).path }}
+{{- end }}
+
+{{- else }}
+
+To access the service locally, run:
+
+  kubectl port-forward svc/{{ include "service.fullname" . }} 8080:{{ .Values.service.port }}
+
+Then visit http://localhost:8080
+
+{{- end }}

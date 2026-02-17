@@ -1,0 +1,28 @@
+replicaCount: 1
+
+image:
+  tag: "dev"
+
+autoscaling:
+  enabled: false
+
+pdb:
+  enabled: false
+
+resources:
+  requests:
+    memory: "64Mi"
+    cpu: "50m"
+  limits:
+    memory: "256Mi"
+    cpu: "250m"
+
+config:
+  nodeEnv: "development"
+  logLevel: "debug"
+
+externalSecrets:
+  enabled: false
+
+secrets:
+  DATABASE_URL: "postgresql://postgres:postgres@postgres-product:5432/productdb"
