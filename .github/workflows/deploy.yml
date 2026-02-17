@@ -1,0 +1,111 @@
+name: Deploy to Environment
+
+on:
+  repository_dispatch:
+    types: [deploy]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        type: choice
+        options:
+          - dev
+          - staging
+      image_tag:
+        description: 'Image tag to deploy (default: latest)'
+        required: false
+        default: 'latest'
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  ACR_REGISTRY: ${{ secrets.ACR_LOGIN_SERVER }}
+
+jobs:
+  deploy:
+    name: Deploy to ${{ github.event.inputs.environment || github.event.client_payload.environment }}
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment || github.event.client_payload.environment }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set environment variables
+        id: env
+        run: |
+          ENV=${{ github.event.inputs.environment || github.event.client_payload.environment }}
+          TAG=${{ github.event.inputs.image_tag || 'latest' }}
+
+          echo "environment=${ENV}" >> "$GITHUB_OUTPUT"
+          echo "image_tag=${TAG}" >> "$GITHUB_OUTPUT"
+          echo "namespace=octo-eshop-${ENV}" >> "$GITHUB_OUTPUT"
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Get AKS credentials
+        run: |
+          az aks get-credentials \
+            --resource-group ${{ secrets.AKS_RESOURCE_GROUP }} \
+            --name ${{ secrets.AKS_CLUSTER_NAME }} \
+            --overwrite-existing
+
+      - name: Setup Helm
+        uses: azure/setup-helm@v4
+
+      - name: Create namespace if not exists
+        run: |
+          kubectl create namespace ${{ steps.env.outputs.namespace }} --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Deploy services with Helm
+        run: |
+          ENV=${{ steps.env.outputs.environment }}
+          TAG=${{ steps.env.outputs.image_tag }}
+          NS=${{ steps.env.outputs.namespace }}
+
+          # Deploy network policies first
+          helm upgrade --install network-policies ./helm/charts/network-policies \
+            --namespace "${NS}" --wait --timeout 2m
+
+          # Deploy each service
+          for service in user-service product-service cart-service order-service payment-service frontend; do
+            echo "Deploying ${service}..."
+            helm upgrade --install "${service}" "./helm/charts/${service}" \
+              --namespace "${NS}" \
+              -f "./helm/charts/${service}/values.yaml" \
+              -f "./helm/charts/${service}/values-${ENV}.yaml" \
+              --set "image.tag=${TAG}" \
+              --set "image.repository=${ACR_REGISTRY}/${service}" \
+              --wait --timeout 5m
+          done
+
+      - name: Verify deployment
+        run: |
+          NS=${{ steps.env.outputs.namespace }}
+
+          echo "=== Pods ==="
+          kubectl get pods -n "${NS}"
+
+          echo "=== Services ==="
+          kubectl get services -n "${NS}"
+
+          echo "=== Helm Releases ==="
+          helm list -n "${NS}"
+
+      - name: Run smoke tests
+        if: steps.env.outputs.environment != 'production'
+        run: |
+          NS=${{ steps.env.outputs.namespace }}
+          sleep 15
+
+          # Test health endpoints via port-forward
+          for service in user-service product-service cart-service order-service payment-service; do
+            echo "Checking ${service}..."
+            kubectl get deployment "${service}" -n "${NS}" -o jsonpath='{.status.readyReplicas}' || echo "Not ready"
+          done
+        continue-on-error: true

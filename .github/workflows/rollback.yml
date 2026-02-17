@@ -1,0 +1,74 @@
+name: Rollback Deployment
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to rollback'
+        required: true
+        type: choice
+        options:
+          - dev
+          - staging
+          - production
+      service:
+        description: 'Service to rollback (or "all")'
+        required: true
+        default: 'all'
+      revision:
+        description: 'Helm revision to rollback to (leave empty for previous)'
+        required: false
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  rollback:
+    name: Rollback ${{ github.event.inputs.service }} in ${{ github.event.inputs.environment }}
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment }}
+    steps:
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Get AKS credentials
+        run: |
+          az aks get-credentials \
+            --resource-group ${{ secrets.AKS_RESOURCE_GROUP }} \
+            --name ${{ secrets.AKS_CLUSTER_NAME }} \
+            --overwrite-existing
+
+      - name: Setup Helm
+        uses: azure/setup-helm@v4
+
+      - name: Rollback Helm releases
+        run: |
+          NAMESPACE="octo-eshop-${{ github.event.inputs.environment }}"
+          SERVICE="${{ github.event.inputs.service }}"
+          REVISION="${{ github.event.inputs.revision }}"
+
+          if [ "$SERVICE" == "all" ]; then
+            SERVICES="user-service product-service cart-service order-service payment-service frontend"
+          else
+            SERVICES="$SERVICE"
+          fi
+
+          for svc in $SERVICES; do
+            echo "Rolling back ${svc}..."
+            if [ -n "$REVISION" ]; then
+              helm rollback "${svc}" "${REVISION}" --namespace "${NAMESPACE}" --wait --timeout 5m
+            else
+              helm rollback "${svc}" --namespace "${NAMESPACE}" --wait --timeout 5m
+            fi
+          done
+
+      - name: Verify rollback
+        run: |
+          NAMESPACE="octo-eshop-${{ github.event.inputs.environment }}"
+          echo "=== Pods ==="
+          kubectl get pods -n "${NAMESPACE}"
+          echo "=== Helm Releases ==="
+          helm list -n "${NAMESPACE}"
