@@ -7,7 +7,7 @@ variable "project_name" {
 variable "environment" {
   description = "Environment name"
   type        = string
-  default     = "dev"
+  default     = "production"
 }
 
 variable "location" {
@@ -31,7 +31,7 @@ variable "vnet_address_space" {
 variable "aks_subnet_prefix" {
   description = "Address prefix for AKS subnet"
   type        = list(string)
-  default     = ["10.0.1.0/24"]
+  default     = ["10.0.1.0/22"]
 }
 
 variable "database_subnet_prefix" {
