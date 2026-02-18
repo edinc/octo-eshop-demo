@@ -9,6 +9,15 @@ autoscaling:
 pdb:
   enabled: false
 
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 1001
+  readOnlyRootFilesystem: false
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+
 resources:
   requests:
     memory: "32Mi"
