@@ -36,11 +36,10 @@ COPY --from=builder /app/services/frontend/dist /usr/share/nginx/html
 # Add non-root user
 RUN addgroup -g 1001 -S nginx-user && \
     adduser -S nginx-user -u 1001 -G nginx-user && \
+    mkdir -p /tmp/nginx/client_body /tmp/nginx/proxy /tmp/nginx/fastcgi /tmp/nginx/uwsgi /tmp/nginx/scgi && \
+    chown -R nginx-user:nginx-user /tmp/nginx && \
     chown -R nginx-user:nginx-user /var/cache/nginx && \
-    chown -R nginx-user:nginx-user /var/log/nginx && \
     chown -R nginx-user:nginx-user /etc/nginx/conf.d && \
-    touch /var/run/nginx.pid && \
-    chown -R nginx-user:nginx-user /var/run/nginx.pid && \
     chown -R nginx-user:nginx-user /usr/share/nginx/html
 
 USER nginx-user

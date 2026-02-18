@@ -36,7 +36,20 @@ spec:
       ports:
         - protocol: UDP
           port: 53
-    # Allow egress to external services (PostgreSQL, Redis, Key Vault, Service Bus)
+    # Allow egress to Azure private endpoints (databases, Redis on VNet)
+    - to:
+        - ipBlock:
+            cidr: 10.0.2.0/24
+      ports:
+        - protocol: TCP
+          port: 5432
+    - to:
+        - ipBlock:
+            cidr: 10.0.3.0/24
+      ports:
+        - protocol: TCP
+          port: 6380
+    # Allow egress to external services (Key Vault, Service Bus, ACR, etc.)
     - to:
         - ipBlock:
             cidr: 0.0.0.0/0
