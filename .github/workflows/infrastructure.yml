@@ -29,42 +29,40 @@ permissions:
   contents: read
 
 jobs:
-  terraform:
-    name: Terraform ${{ inputs.action || 'plan' }} (${{ inputs.environment || 'all' }})
-    runs-on: ubuntu-latest
-    environment: ${{ inputs.environment }}
-    defaults:
-      run:
-        working-directory: infrastructure/terraform/environments/${{ inputs.environment || 'dev' }}
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+  # On push: plan all environments to validate changes
+  plan-dev:
+    name: Plan Dev
+    if: github.event_name == 'push'
+    uses: ./.github/workflows/terraform-deploy.yml
+    with:
+      environment: dev
+      action: plan
+    secrets: inherit
 
-      - name: Azure Login
-        uses: azure/login@v2
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
+  plan-staging:
+    name: Plan Staging
+    if: github.event_name == 'push'
+    uses: ./.github/workflows/terraform-deploy.yml
+    with:
+      environment: staging
+      action: plan
+    secrets: inherit
 
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: '~1.5'
+  plan-production:
+    name: Plan Production
+    if: github.event_name == 'push'
+    uses: ./.github/workflows/terraform-deploy.yml
+    with:
+      environment: production
+      action: plan
+    secrets: inherit
 
-      - name: Set ARM environment variables
-        run: |
-          # Extract credentials for Terraform Azure provider
-          CREDS='${{ secrets.AZURE_CREDENTIALS }}'
-          echo "ARM_CLIENT_ID=$(echo $CREDS | jq -r .clientId)" >> $GITHUB_ENV
-          echo "ARM_CLIENT_SECRET=$(echo $CREDS | jq -r .clientSecret)" >> $GITHUB_ENV
-          echo "ARM_TENANT_ID=$(echo $CREDS | jq -r .tenantId)" >> $GITHUB_ENV
-          echo "ARM_SUBSCRIPTION_ID=$(echo $CREDS | jq -r .subscriptionId)" >> $GITHUB_ENV
-
-      - name: Terraform Init
-        run: terraform init
-
-      - name: Terraform Plan
-        run: terraform plan -out=tfplan
-
-      - name: Terraform Apply
-        if: inputs.action == 'apply'
-        run: terraform apply -auto-approve tfplan
+  # On dispatch: run against selected environment
+  dispatch:
+    name: Dispatch
+    if: github.event_name == 'workflow_dispatch'
+    uses: ./.github/workflows/terraform-deploy.yml
+    with:
+      environment: ${{ inputs.environment }}
+      action: ${{ inputs.action }}
+    secrets: inherit
