@@ -23,3 +23,7 @@ config:
 externalSecrets:
   enabled: false
   secretStoreRef: azure-keyvault-staging
+
+secrets:
+  DATABASE_URL: "placeholder-overridden-by-deploy-workflow"
+  JWT_SECRET: "placeholder-overridden-by-deploy-workflow"

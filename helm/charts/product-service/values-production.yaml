@@ -30,3 +30,6 @@ ingress:
 externalSecrets:
   enabled: false
   secretStoreRef: azure-keyvault-production
+
+secrets:
+  DATABASE_URL: "placeholder-overridden-by-deploy-workflow"

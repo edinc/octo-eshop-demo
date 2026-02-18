@@ -30,3 +30,7 @@ ingress:
 externalSecrets:
   enabled: false
   secretStoreRef: azure-keyvault-production
+
+secrets:
+  SERVICEBUS_CONNECTION_STRING: "placeholder-overridden-by-deploy-workflow"
+  SERVICE_AUTH_TOKEN: "placeholder-overridden-by-deploy-workflow"
