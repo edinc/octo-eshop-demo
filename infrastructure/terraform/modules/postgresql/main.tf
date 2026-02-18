@@ -25,7 +25,8 @@ resource "azurerm_postgresql_flexible_server" "main" {
     for_each = var.environment == "production" ? [1] : []
 
     content {
-      mode = "ZoneRedundant"
+      mode                      = "ZoneRedundant"
+      standby_availability_zone = "2"
     }
   }
 

@@ -4,7 +4,7 @@ location     = "swedencentral"
 alert_email  = ""
 
 vnet_address_space     = ["10.20.0.0/16"]
-aks_subnet_prefix      = ["10.20.1.0/24"]
+aks_subnet_prefix      = ["10.20.4.0/22"]
 database_subnet_prefix = ["10.20.2.0/24"]
 redis_subnet_prefix    = ["10.20.3.0/24"]
 
