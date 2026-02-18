@@ -63,13 +63,6 @@ jobs:
           kubectl create namespace ${{ steps.env.outputs.namespace }} --dry-run=client -o yaml | kubectl apply -f -
 
       - name: Deploy services with Helm
-        env:
-          USER_DATABASE_URL: ${{ secrets.USER_DATABASE_URL }}
-          PRODUCT_DATABASE_URL: ${{ secrets.PRODUCT_DATABASE_URL }}
-          ORDER_DATABASE_URL: ${{ secrets.ORDER_DATABASE_URL }}
-          REDIS_URL: ${{ secrets.REDIS_URL }}
-          SERVICEBUS_CONNECTION_STRING: ${{ secrets.SERVICEBUS_CONNECTION_STRING }}
-          JWT_SECRET: ${{ secrets.JWT_SECRET }}
         run: |
           ENV=${{ steps.env.outputs.environment }}
           TAG=${{ steps.env.outputs.image_tag }}
@@ -79,37 +72,64 @@ jobs:
           helm upgrade --install network-policies ./helm/charts/network-policies \
             --namespace "${NS}" --wait --timeout 2m
 
-          # Deploy each service
+          # Deploy each service without waiting (secrets will be overridden next)
           for service in user-service product-service cart-service order-service payment-service frontend; do
             echo "Deploying ${service}..."
-
-            EXTRA_SETS=""
-            case "${service}" in
-              user-service)
-                EXTRA_SETS="--set secrets.DATABASE_URL=${USER_DATABASE_URL} --set secrets.JWT_SECRET=${JWT_SECRET}"
-                ;;
-              product-service)
-                EXTRA_SETS="--set secrets.DATABASE_URL=${PRODUCT_DATABASE_URL}"
-                ;;
-              cart-service)
-                EXTRA_SETS="--set secrets.REDIS_URL=${REDIS_URL}"
-                ;;
-              order-service)
-                EXTRA_SETS="--set secrets.DATABASE_URL=${ORDER_DATABASE_URL} --set secrets.SERVICEBUS_CONNECTION_STRING=${SERVICEBUS_CONNECTION_STRING}"
-                ;;
-              payment-service)
-                EXTRA_SETS="--set secrets.SERVICEBUS_CONNECTION_STRING=${SERVICEBUS_CONNECTION_STRING}"
-                ;;
-            esac
-
             helm upgrade --install "${service}" "./helm/charts/${service}" \
               --namespace "${NS}" \
               -f "./helm/charts/${service}/values.yaml" \
               -f "./helm/charts/${service}/values-${ENV}.yaml" \
               --set "image.tag=${TAG}" \
               --set "image.repository=${ACR_REGISTRY}/${service}" \
-              ${EXTRA_SETS} \
-              --wait --timeout 5m
+              --timeout 5m
+          done
+
+      - name: Override secrets with Azure values
+        env:
+          USER_DATABASE_URL: ${{ secrets.USER_DATABASE_URL }}
+          PRODUCT_DATABASE_URL: ${{ secrets.PRODUCT_DATABASE_URL }}
+          ORDER_DATABASE_URL: ${{ secrets.ORDER_DATABASE_URL }}
+          REDIS_URL: ${{ secrets.REDIS_URL }}
+          SERVICEBUS_CONNECTION_STRING: ${{ secrets.SERVICEBUS_CONNECTION_STRING }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+        run: |
+          NS=${{ steps.env.outputs.namespace }}
+          SVC_AUTH_TOKEN="dev-service-auth-token"
+
+          apply_secret() {
+            local name="$1"; shift
+            kubectl create secret generic "${name}-secrets" \
+              --namespace "${NS}" --dry-run=client -o yaml "$@" | kubectl apply -f -
+          }
+
+          apply_secret user-service \
+            --from-literal="DATABASE_URL=${USER_DATABASE_URL}" \
+            --from-literal="JWT_SECRET=${JWT_SECRET}"
+
+          apply_secret product-service \
+            --from-literal="DATABASE_URL=${PRODUCT_DATABASE_URL}"
+
+          apply_secret cart-service \
+            --from-literal="REDIS_URL=${REDIS_URL}"
+
+          apply_secret order-service \
+            --from-literal="DATABASE_URL=${ORDER_DATABASE_URL}" \
+            --from-literal="SERVICEBUS_CONNECTION_STRING=${SERVICEBUS_CONNECTION_STRING}" \
+            --from-literal="SERVICE_AUTH_TOKEN=${SVC_AUTH_TOKEN}"
+
+          apply_secret payment-service \
+            --from-literal="SERVICEBUS_CONNECTION_STRING=${SERVICEBUS_CONNECTION_STRING}" \
+            --from-literal="SERVICE_AUTH_TOKEN=${SVC_AUTH_TOKEN}"
+
+          # Restart deployments to pick up new secrets
+          for service in user-service product-service cart-service order-service payment-service; do
+            kubectl rollout restart deployment "${service}" -n "${NS}"
+          done
+
+          # Wait for rollouts
+          for service in user-service product-service cart-service order-service payment-service frontend; do
+            echo "Waiting for ${service}..."
+            kubectl rollout status deployment "${service}" -n "${NS}" --timeout=5m || true
           done
 
       - name: Verify deployment
