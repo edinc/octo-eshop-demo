@@ -63,6 +63,13 @@ jobs:
           kubectl create namespace ${{ steps.env.outputs.namespace }} --dry-run=client -o yaml | kubectl apply -f -
 
       - name: Deploy services with Helm
+        env:
+          USER_DATABASE_URL: ${{ secrets.USER_DATABASE_URL }}
+          PRODUCT_DATABASE_URL: ${{ secrets.PRODUCT_DATABASE_URL }}
+          ORDER_DATABASE_URL: ${{ secrets.ORDER_DATABASE_URL }}
+          REDIS_URL: ${{ secrets.REDIS_URL }}
+          SERVICEBUS_CONNECTION_STRING: ${{ secrets.SERVICEBUS_CONNECTION_STRING }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
         run: |
           ENV=${{ steps.env.outputs.environment }}
           TAG=${{ steps.env.outputs.image_tag }}
@@ -75,12 +82,33 @@ jobs:
           # Deploy each service
           for service in user-service product-service cart-service order-service payment-service frontend; do
             echo "Deploying ${service}..."
+
+            EXTRA_SETS=""
+            case "${service}" in
+              user-service)
+                EXTRA_SETS="--set secrets.DATABASE_URL=${USER_DATABASE_URL} --set secrets.JWT_SECRET=${JWT_SECRET}"
+                ;;
+              product-service)
+                EXTRA_SETS="--set secrets.DATABASE_URL=${PRODUCT_DATABASE_URL}"
+                ;;
+              cart-service)
+                EXTRA_SETS="--set secrets.REDIS_URL=${REDIS_URL}"
+                ;;
+              order-service)
+                EXTRA_SETS="--set secrets.DATABASE_URL=${ORDER_DATABASE_URL} --set secrets.SERVICEBUS_CONNECTION_STRING=${SERVICEBUS_CONNECTION_STRING}"
+                ;;
+              payment-service)
+                EXTRA_SETS="--set secrets.SERVICEBUS_CONNECTION_STRING=${SERVICEBUS_CONNECTION_STRING}"
+                ;;
+            esac
+
             helm upgrade --install "${service}" "./helm/charts/${service}" \
               --namespace "${NS}" \
               -f "./helm/charts/${service}/values.yaml" \
               -f "./helm/charts/${service}/values-${ENV}.yaml" \
               --set "image.tag=${TAG}" \
               --set "image.repository=${ACR_REGISTRY}/${service}" \
+              ${EXTRA_SETS} \
               --wait --timeout 5m
           done
 
