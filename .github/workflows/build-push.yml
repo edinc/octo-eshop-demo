@@ -22,13 +22,8 @@ jobs:
     permissions:
       pull-requests: read
     outputs:
-      user-service: ${{ steps.filter.outputs.user-service }}
-      product-service: ${{ steps.filter.outputs.product-service }}
-      cart-service: ${{ steps.filter.outputs.cart-service }}
-      order-service: ${{ steps.filter.outputs.order-service }}
-      payment-service: ${{ steps.filter.outputs.payment-service }}
-      frontend: ${{ steps.filter.outputs.frontend }}
-      shared: ${{ steps.filter.outputs.shared }}
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+      any_changed: ${{ steps.set-matrix.outputs.any_changed }}
     steps:
       - uses: actions/checkout@v4
       - uses: dorny/paths-filter@v3
@@ -49,6 +44,33 @@ jobs:
               - 'services/frontend/**'
             shared:
               - 'shared/**'
+      - name: Build service matrix
+        id: set-matrix
+        run: |
+          SERVICES=""
+          SHARED="${{ steps.filter.outputs.shared }}"
+
+          check() {
+            if [[ "$1" == "true" || "$SHARED" == "true" ]]; then
+              [ -n "$SERVICES" ] && SERVICES="$SERVICES,"
+              SERVICES="$SERVICES\"$2\""
+            fi
+          }
+
+          check "${{ steps.filter.outputs.user-service }}" "user-service"
+          check "${{ steps.filter.outputs.product-service }}" "product-service"
+          check "${{ steps.filter.outputs.cart-service }}" "cart-service"
+          check "${{ steps.filter.outputs.order-service }}" "order-service"
+          check "${{ steps.filter.outputs.payment-service }}" "payment-service"
+          check "${{ steps.filter.outputs.frontend }}" "frontend"
+
+          if [ -z "$SERVICES" ]; then
+            echo "any_changed=false" >> "$GITHUB_OUTPUT"
+            echo 'matrix={"service":[]}' >> "$GITHUB_OUTPUT"
+          else
+            echo "any_changed=true" >> "$GITHUB_OUTPUT"
+            echo "matrix={\"service\":[$SERVICES]}" >> "$GITHUB_OUTPUT"
+          fi
 
   build-push:
     name: Build ${{ matrix.service }}
@@ -56,19 +78,10 @@ jobs:
     needs: changes
     outputs:
       sha_short: ${{ steps.tags.outputs.sha_short }}
-    if: >-
-      needs.changes.outputs[matrix.service] == 'true' ||
-      needs.changes.outputs.shared == 'true'
+    if: needs.changes.outputs.any_changed == 'true'
     strategy:
       fail-fast: false
-      matrix:
-        service:
-          - user-service
-          - product-service
-          - cart-service
-          - order-service
-          - payment-service
-          - frontend
+      matrix: ${{ fromJSON(needs.changes.outputs.matrix) }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
