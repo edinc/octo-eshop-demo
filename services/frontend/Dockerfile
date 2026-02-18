@@ -27,8 +27,8 @@ RUN npm run build
 # Stage 2: Production with nginx
 FROM nginx:1.25-alpine AS production
 
-# Copy custom nginx config
-COPY services/frontend/nginx.conf /etc/nginx/nginx.conf
+# Copy custom nginx config as template
+COPY services/frontend/nginx.conf /etc/nginx/nginx.conf.template
 
 # Copy built assets
 COPY --from=builder /app/services/frontend/dist /usr/share/nginx/html
@@ -40,9 +40,13 @@ RUN addgroup -g 1001 -S nginx-user && \
     chown -R nginx-user:nginx-user /tmp/nginx && \
     chown -R nginx-user:nginx-user /var/cache/nginx && \
     chown -R nginx-user:nginx-user /etc/nginx/conf.d && \
+    chown -R nginx-user:nginx-user /etc/nginx/nginx.conf.template && \
     chown -R nginx-user:nginx-user /usr/share/nginx/html
 
 USER nginx-user
+
+# Default namespace for local development
+ENV NAMESPACE=default
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
@@ -50,4 +54,5 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
 
 EXPOSE 8080
 
-CMD ["nginx", "-g", "daemon off;"]
+# Substitute env vars in nginx config template and start nginx
+CMD ["/bin/sh", "-c", "envsubst '${NAMESPACE}' < /etc/nginx/nginx.conf.template > /tmp/nginx/nginx.conf && nginx -c /tmp/nginx/nginx.conf -g 'daemon off;'"]
