@@ -25,25 +25,25 @@ variable "alert_email" {
 variable "vnet_address_space" {
   description = "Address space for VNet"
   type        = list(string)
-  default     = ["10.0.0.0/16"]
+  default     = ["10.10.0.0/16"]
 }
 
 variable "aks_subnet_prefix" {
   description = "Address prefix for AKS subnet"
   type        = list(string)
-  default     = ["10.0.1.0/22"]
+  default     = ["10.10.1.0/24"]
 }
 
 variable "database_subnet_prefix" {
   description = "Address prefix for database subnet"
   type        = list(string)
-  default     = ["10.0.2.0/24"]
+  default     = ["10.10.2.0/24"]
 }
 
 variable "redis_subnet_prefix" {
   description = "Address prefix for Redis subnet"
   type        = list(string)
-  default     = ["10.0.3.0/24"]
+  default     = ["10.10.3.0/24"]
 }
 
 variable "kubernetes_version" {
