@@ -7,6 +7,13 @@ on:
       - 'services/**'
       - 'shared/**'
       - '.github/workflows/build-push.yml'
+  workflow_dispatch:
+    inputs:
+      build_all:
+        description: 'Build all services regardless of changes'
+        required: false
+        type: boolean
+        default: true
 
 permissions:
   contents: read
@@ -49,20 +56,25 @@ jobs:
         run: |
           SERVICES=""
           SHARED="${{ steps.filter.outputs.shared }}"
+          BUILD_ALL="${{ github.event.inputs.build_all || 'false' }}"
 
-          check() {
-            if [[ "$1" == "true" || "$SHARED" == "true" ]]; then
-              [ -n "$SERVICES" ] && SERVICES="$SERVICES,"
-              SERVICES="$SERVICES\"$2\""
-            fi
-          }
+          if [ "$BUILD_ALL" == "true" ]; then
+            SERVICES='"user-service","product-service","cart-service","order-service","payment-service","frontend"'
+          else
+            check() {
+              if [[ "$1" == "true" || "$SHARED" == "true" ]]; then
+                [ -n "$SERVICES" ] && SERVICES="$SERVICES,"
+                SERVICES="$SERVICES\"$2\""
+              fi
+            }
 
-          check "${{ steps.filter.outputs.user-service }}" "user-service"
-          check "${{ steps.filter.outputs.product-service }}" "product-service"
-          check "${{ steps.filter.outputs.cart-service }}" "cart-service"
-          check "${{ steps.filter.outputs.order-service }}" "order-service"
-          check "${{ steps.filter.outputs.payment-service }}" "payment-service"
-          check "${{ steps.filter.outputs.frontend }}" "frontend"
+            check "${{ steps.filter.outputs.user-service }}" "user-service"
+            check "${{ steps.filter.outputs.product-service }}" "product-service"
+            check "${{ steps.filter.outputs.cart-service }}" "cart-service"
+            check "${{ steps.filter.outputs.order-service }}" "order-service"
+            check "${{ steps.filter.outputs.payment-service }}" "payment-service"
+            check "${{ steps.filter.outputs.frontend }}" "frontend"
+          fi
 
           if [ -z "$SERVICES" ]; then
             echo "any_changed=false" >> "$GITHUB_OUTPUT"
