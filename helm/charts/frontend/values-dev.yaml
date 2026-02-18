@@ -18,6 +18,20 @@ securityContext:
     drop:
       - ALL
 
+# Override default extraVolumes to NOT mount emptyDir on /tmp
+# (nginx temp dirs are created in the Dockerfile at /tmp/nginx/)
+extraVolumes:
+  - name: cache
+    emptyDir: {}
+  - name: run
+    emptyDir: {}
+
+extraVolumeMounts:
+  - name: cache
+    mountPath: /var/cache/nginx
+  - name: run
+    mountPath: /var/run
+
 resources:
   requests:
     memory: "32Mi"
