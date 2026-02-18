@@ -17,8 +17,8 @@ acr_sku = "Standard"
 postgresql_sku        = "GP_Standard_D2s_v3"
 postgresql_storage_mb = 65536
 
-redis_sku      = "Standard"
+redis_sku      = "Basic"
 redis_family   = "C"
-redis_capacity = 1
+redis_capacity = 0
 
 servicebus_sku = "Standard"
