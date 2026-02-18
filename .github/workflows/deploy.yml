@@ -89,6 +89,19 @@ jobs:
           helm upgrade --install network-policies ./helm/charts/network-policies \
             --namespace "${NS}" --wait --timeout 2m
 
+          # Adopt any orphaned secrets so Helm can manage them
+          for service in user-service product-service cart-service order-service payment-service; do
+            SECRET_NAME="${service}-secrets"
+            if kubectl get secret "${SECRET_NAME}" -n "${NS}" 2>/dev/null | grep -qv "managed-by.*Helm"; then
+              echo "Adopting ${SECRET_NAME} for Helm..."
+              kubectl annotate secret "${SECRET_NAME}" -n "${NS}" \
+                meta.helm.sh/release-name="${service}" \
+                meta.helm.sh/release-namespace="${NS}" --overwrite 2>/dev/null || true
+              kubectl label secret "${SECRET_NAME}" -n "${NS}" \
+                app.kubernetes.io/managed-by=Helm --overwrite 2>/dev/null || true
+            fi
+          done
+
           # Deploy each service
           for service in user-service product-service cart-service order-service payment-service frontend; do
             echo "Deploying ${service}..."
