@@ -3,6 +3,9 @@ replicaCount: 1
 image:
   tag: "dev"
 
+service:
+  type: LoadBalancer
+
 autoscaling:
   enabled: false
 
