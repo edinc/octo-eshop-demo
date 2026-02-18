@@ -28,5 +28,5 @@ ingress:
   enabled: true
 
 externalSecrets:
-  enabled: true
+  enabled: false
   secretStoreRef: azure-keyvault-production
