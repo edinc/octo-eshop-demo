@@ -20,6 +20,7 @@ app.get('/health', (_, res) => {
 
 // Routes
 app.use('/api/users', userRoutes);
+app.use('/api/auth', userRoutes);
 
 // Error handling
 app.use(errorHandler);

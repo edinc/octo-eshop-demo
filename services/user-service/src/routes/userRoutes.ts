@@ -15,10 +15,13 @@ const userController = new UserController(userService);
 router.post('/register', userController.register);
 router.post('/login', userController.login);
 router.post('/refresh-token', userController.refreshToken);
+router.post('/refresh', userController.refreshToken);
 
 // Protected routes
 router.post('/logout', authenticate, userController.logout);
 router.get('/profile', authenticate, userController.getProfile);
 router.put('/profile', authenticate, userController.updateProfile);
+router.get('/me', authenticate, userController.getProfile);
+router.put('/me', authenticate, userController.updateProfile);
 
 export { router as userRoutes };
