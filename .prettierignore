@@ -2,3 +2,6 @@ dist
 node_modules
 coverage
 package-lock.json
+helm
+plan
+infrastructure/terraform
