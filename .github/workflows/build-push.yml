@@ -166,6 +166,6 @@ jobs:
             {
               "ref": "${{ github.ref }}",
               "sha": "${{ github.sha }}",
-              "environment": "${{ github.ref == 'refs/heads/main' && 'staging' || 'dev' }}",
+              "environment": "dev",
               "image_tag": "${{ github.ref == 'refs/heads/main' && 'latest' || format('{0}-{1}', github.ref_name, needs.build-push.outputs.sha_short) }}"
             }
