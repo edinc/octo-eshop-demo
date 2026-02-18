@@ -1,8 +1,16 @@
 name: Deploy to Environment
 
 on:
-  repository_dispatch:
-    types: [deploy]
+  workflow_call:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        type: string
+      image_tag:
+        description: 'Image tag to deploy'
+        required: true
+        type: string
   workflow_dispatch:
     inputs:
       environment:
@@ -12,6 +20,7 @@ on:
         options:
           - dev
           - staging
+          - production
       image_tag:
         description: 'Image tag to deploy (default: latest)'
         required: false
@@ -21,14 +30,13 @@ permissions:
   id-token: write
   contents: read
 
-env:
-  ACR_REGISTRY: ${{ secrets.ACR_LOGIN_SERVER }}
-
 jobs:
   deploy:
-    name: Deploy to ${{ github.event.inputs.environment || github.event.client_payload.environment }}
+    name: Deploy to ${{ inputs.environment }}
     runs-on: ubuntu-latest
-    environment: ${{ github.event.inputs.environment || github.event.client_payload.environment }}
+    environment: ${{ inputs.environment }}
+    env:
+      ACR_REGISTRY: ${{ secrets.ACR_LOGIN_SERVER }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -36,8 +44,8 @@ jobs:
       - name: Set environment variables
         id: env
         run: |
-          ENV=${{ github.event.inputs.environment || github.event.client_payload.environment }}
-          TAG=${{ github.event.inputs.image_tag || github.event.client_payload.image_tag || 'latest' }}
+          ENV="${{ inputs.environment }}"
+          TAG="${{ inputs.image_tag || 'latest' }}"
 
           echo "environment=${ENV}" >> "$GITHUB_OUTPUT"
           echo "image_tag=${TAG}" >> "$GITHUB_OUTPUT"
@@ -72,7 +80,7 @@ jobs:
           helm upgrade --install network-policies ./helm/charts/network-policies \
             --namespace "${NS}" --wait --timeout 2m
 
-          # Deploy each service without waiting (secrets will be overridden next)
+          # Deploy each service
           for service in user-service product-service cart-service order-service payment-service frontend; do
             echo "Deploying ${service}..."
             helm upgrade --install "${service}" "./helm/charts/${service}" \
@@ -94,7 +102,7 @@ jobs:
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
         run: |
           NS=${{ steps.env.outputs.namespace }}
-          SVC_AUTH_TOKEN="dev-service-auth-token"
+          SVC_AUTH_TOKEN="${{ steps.env.outputs.environment }}-service-auth-token"
 
           apply_secret() {
             local name="$1"; shift
@@ -146,12 +154,10 @@ jobs:
           helm list -n "${NS}"
 
       - name: Run smoke tests
-        if: steps.env.outputs.environment != 'production'
         run: |
           NS=${{ steps.env.outputs.namespace }}
           sleep 15
 
-          # Test health endpoints via port-forward
           for service in user-service product-service cart-service order-service payment-service; do
             echo "Checking ${service}..."
             kubectl get deployment "${service}" -n "${NS}" -o jsonpath='{.status.readyReplicas}' || echo "Not ready"

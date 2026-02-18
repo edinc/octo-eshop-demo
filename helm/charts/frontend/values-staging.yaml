@@ -3,10 +3,36 @@ replicaCount: 2
 image:
   tag: "staging"
 
+service:
+  type: LoadBalancer
+
 autoscaling:
   enabled: true
   minReplicas: 2
   maxReplicas: 3
+
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 1001
+  readOnlyRootFilesystem: false
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+
+# Override default extraVolumes to NOT mount emptyDir on /tmp
+# (nginx temp dirs are created in the Dockerfile at /tmp/nginx/)
+extraVolumes:
+  - name: cache
+    emptyDir: {}
+  - name: run
+    emptyDir: {}
+
+extraVolumeMounts:
+  - name: cache
+    mountPath: /var/cache/nginx
+  - name: run
+    mountPath: /var/run
 
 resources:
   requests:

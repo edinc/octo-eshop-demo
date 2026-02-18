@@ -16,7 +16,7 @@ on:
         default: true
 
 permissions:
-  contents: write
+  contents: read
   security-events: write
 
 env:
@@ -89,7 +89,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: changes
     outputs:
-      sha_short: ${{ steps.tags.outputs.sha_short }}
+      image_tag: ${{ steps.tags.outputs.image_tag }}
     if: needs.changes.outputs.any_changed == 'true'
     strategy:
       fail-fast: false
@@ -116,12 +116,14 @@ jobs:
 
           if [ "$BRANCH" == "main" ]; then
             TAGS="${ACR_REGISTRY}/${{ matrix.service }}:latest,${ACR_REGISTRY}/${{ matrix.service }}:${SHA_SHORT}"
+            IMAGE_TAG="latest"
           else
             TAGS="${ACR_REGISTRY}/${{ matrix.service }}:${BRANCH}-${SHA_SHORT},${ACR_REGISTRY}/${{ matrix.service }}:${BRANCH}"
+            IMAGE_TAG="${BRANCH}-${SHA_SHORT}"
           fi
 
           echo "tags=${TAGS}" >> "$GITHUB_OUTPUT"
-          echo "sha_short=${SHA_SHORT}" >> "$GITHUB_OUTPUT"
+          echo "image_tag=${IMAGE_TAG}" >> "$GITHUB_OUTPUT"
 
       - name: Build and push
         uses: docker/build-push-action@v5
@@ -139,7 +141,7 @@ jobs:
       - name: Scan image for vulnerabilities
         uses: aquasecurity/trivy-action@0.28.0
         with:
-          image-ref: '${{ env.ACR_REGISTRY }}/${{ matrix.service }}:${{ steps.tags.outputs.sha_short }}'
+          image-ref: '${{ env.ACR_REGISTRY }}/${{ matrix.service }}:${{ steps.tags.outputs.image_tag }}'
           format: 'sarif'
           output: 'trivy-results.sarif'
         continue-on-error: true
@@ -151,21 +153,33 @@ jobs:
           sarif_file: 'trivy-results.sarif'
         continue-on-error: true
 
-  trigger-deploy:
-    name: Trigger Deployment
-    runs-on: ubuntu-latest
+  # --- Deployment Pipeline: dev → staging → production ---
+
+  deploy-dev:
+    name: Deploy to Dev
     needs: build-push
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
-    steps:
-      - name: Trigger deployment workflow
-        uses: peter-evans/repository-dispatch@v3
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          event-type: deploy
-          client-payload: >-
-            {
-              "ref": "${{ github.ref }}",
-              "sha": "${{ github.sha }}",
-              "environment": "dev",
-              "image_tag": "${{ github.ref == 'refs/heads/main' && 'latest' || format('{0}-{1}', github.ref_name, needs.build-push.outputs.sha_short) }}"
-            }
+    uses: ./.github/workflows/deploy.yml
+    with:
+      environment: dev
+      image_tag: ${{ needs.build-push.outputs.image_tag || 'latest' }}
+    secrets: inherit
+
+  deploy-staging:
+    name: Deploy to Staging
+    needs: [build-push, deploy-dev]
+    if: github.ref == 'refs/heads/main'
+    uses: ./.github/workflows/deploy.yml
+    with:
+      environment: staging
+      image_tag: ${{ needs.build-push.outputs.image_tag || 'latest' }}
+    secrets: inherit
+
+  deploy-production:
+    name: Deploy to Production
+    needs: [build-push, deploy-staging]
+    if: github.ref == 'refs/heads/main'
+    uses: ./.github/workflows/deploy.yml
+    with:
+      environment: production
+      image_tag: ${{ needs.build-push.outputs.image_tag || 'latest' }}
+    secrets: inherit
