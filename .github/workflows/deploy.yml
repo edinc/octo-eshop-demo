@@ -66,9 +66,18 @@ jobs:
       - name: Setup Helm
         uses: azure/setup-helm@v4
 
-      - name: Create namespace if not exists
+      - name: Create namespace and ACR pull secret
         run: |
-          kubectl create namespace ${{ steps.env.outputs.namespace }} --dry-run=client -o yaml | kubectl apply -f -
+          NS=${{ steps.env.outputs.namespace }}
+          kubectl create namespace "${NS}" --dry-run=client -o yaml | kubectl apply -f -
+
+          # Create ACR image pull secret
+          kubectl create secret docker-registry acr-secret \
+            --namespace "${NS}" \
+            --docker-server="${ACR_REGISTRY}" \
+            --docker-username="${{ secrets.ACR_USERNAME }}" \
+            --docker-password="${{ secrets.ACR_PASSWORD }}" \
+            --dry-run=client -o yaml | kubectl apply -f -
 
       - name: Deploy services with Helm
         run: |
@@ -89,6 +98,7 @@ jobs:
               -f "./helm/charts/${service}/values-${ENV}.yaml" \
               --set "image.tag=${TAG}" \
               --set "image.repository=${ACR_REGISTRY}/${service}" \
+              --set "imagePullSecrets[0].name=acr-secret" \
               --timeout 5m
           done
 
@@ -139,6 +149,25 @@ jobs:
             echo "Waiting for ${service}..."
             kubectl rollout status deployment "${service}" -n "${NS}" --timeout=5m || true
           done
+
+      - name: Run database migrations and seed
+        run: |
+          NS=${{ steps.env.outputs.namespace }}
+          ENV=${{ steps.env.outputs.environment }}
+
+          # Run Prisma migrations for services with databases
+          for service in user-service product-service order-service; do
+            echo "Running database migrations for ${service}..."
+            kubectl exec deployment/${service} -n "${NS}" -- npx prisma db push --skip-generate || true
+          done
+
+          # Seed product data only in dev/staging (not production to avoid data loss)
+          if [ "${ENV}" != "production" ]; then
+            echo "Seeding product-service database..."
+            kubectl exec deployment/product-service -n "${NS}" -- npx prisma db seed || true
+          else
+            echo "Skipping seed in production environment"
+          fi
 
       - name: Verify deployment
         run: |
