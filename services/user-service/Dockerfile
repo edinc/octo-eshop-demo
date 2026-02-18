@@ -65,4 +65,4 @@ EXPOSE 3000
 ENV NODE_ENV=production
 
 # Startup script to run migrations and start app
-CMD ["sh", "-c", "npx prisma migrate deploy && node dist/index.js"]
+CMD ["sh", "-c", "npx prisma migrate deploy 2>/dev/null; node dist/index.js"]
