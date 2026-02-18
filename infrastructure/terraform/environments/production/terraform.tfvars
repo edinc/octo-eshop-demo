@@ -17,8 +17,8 @@ acr_sku = "Premium"
 postgresql_sku        = "GP_Standard_D4s_v3"
 postgresql_storage_mb = 131072
 
-redis_sku      = "Premium"
-redis_family   = "P"
-redis_capacity = 1
+redis_sku      = "Basic"
+redis_family   = "C"
+redis_capacity = 0
 
 servicebus_sku = "Standard"
