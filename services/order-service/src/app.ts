@@ -15,8 +15,11 @@ app.get('/health', (_req, res) => {
   res.json({ status: 'ok', service: 'order-service' });
 });
 
+const apiLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 100, standardHeaders: true });
+
 // Rate limiting on API routes only
-app.use('/api', rateLimit({ windowMs: 15 * 60 * 1000, max: 100, standardHeaders: true }));
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+app.use('/api', apiLimiter as any);
 
 // Routes
 app.use('/api/orders', orderRoutes);
