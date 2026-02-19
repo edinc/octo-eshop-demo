@@ -176,13 +176,9 @@ jobs:
             kubectl exec deployment/${service} -n "${NS}" -- npx prisma db push --skip-generate || true
           done
 
-          # Seed product data only in dev/staging (not production to avoid data loss)
-          if [ "${ENV}" != "production" ]; then
-            echo "Seeding product-service database..."
-            kubectl exec deployment/product-service -n "${NS}" -- npx prisma db seed || true
-          else
-            echo "Skipping seed in production environment"
-          fi
+          # Seed product data (replaces existing data with fresh catalog)
+          echo "Seeding product-service database..."
+          kubectl exec deployment/product-service -n "${NS}" -- npx prisma db seed || true
 
       - name: Verify deployment
         run: |
