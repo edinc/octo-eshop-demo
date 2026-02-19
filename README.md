@@ -1,12 +1,33 @@
-# Octo E-Shop
+# Octo E-Shop 🚲
 
-Bicycle e-commerce platform using microservices architecture.
+[![CI Pipeline](https://github.com/edinc/octo-eshop-demo/actions/workflows/ci.yml/badge.svg)](https://github.com/edinc/octo-eshop-demo/actions/workflows/ci.yml)
+[![Build and Push Images](https://github.com/edinc/octo-eshop-demo/actions/workflows/build-push.yml/badge.svg)](https://github.com/edinc/octo-eshop-demo/actions/workflows/build-push.yml)
+[![Deploy to Environment](https://github.com/edinc/octo-eshop-demo/actions/workflows/deploy.yml/badge.svg)](https://github.com/edinc/octo-eshop-demo/actions/workflows/deploy.yml)
 
-## Prerequisites
+A bicycle e-commerce platform built with microservices architecture, deployed on Azure Kubernetes Service.
 
-- Node.js 20+
-- Docker Desktop
-- Git
+![Architecture](docs/architecture.png)
+
+## Technology Stack
+
+| Layer              | Technology                               |
+| ------------------ | ---------------------------------------- |
+| **Frontend**       | React, Vite, Tailwind CSS, Redux Toolkit |
+| **Backend**        | Node.js, TypeScript, Express             |
+| **Databases**      | PostgreSQL (Prisma ORM), Redis           |
+| **Infrastructure** | Azure AKS, Terraform                     |
+| **CI/CD**          | GitHub Actions, Helm                     |
+
+## Services
+
+| Service             | Description                                  |
+| ------------------- | -------------------------------------------- |
+| **frontend**        | React SPA — product browsing, cart, checkout |
+| **user-service**    | Authentication, profiles, JWT tokens         |
+| **product-service** | Bicycle catalog, inventory management        |
+| **cart-service**    | Shopping cart (Redis-backed)                 |
+| **order-service**   | Order orchestration across services          |
+| **payment-service** | Payment processing (mock gateway)            |
 
 ## Quick Start
 
@@ -15,13 +36,10 @@ Bicycle e-commerce platform using microservices architecture.
 npm install
 
 # Start local development
-npm run dev
+docker-compose up -d
 
 # Run tests
 npm test
-
-# Run linting
-npm run lint
 
 # Build all services
 npm run build
@@ -31,49 +49,28 @@ npm run build
 
 ```
 octo-eshop-demo/
-├── services/           # Microservices
-│   ├── frontend/       # React SPA
-│   ├── user-service/   # Authentication & profiles
-│   ├── product-service/# Bicycle catalog
-│   ├── cart-service/   # Shopping cart (Redis)
-│   ├── order-service/  # Order lifecycle
-│   └── payment-service/# Mock payment gateway
-├── shared/             # Shared code
-│   ├── types/          # TypeScript types
-│   └── utils/          # Utility functions
-├── infrastructure/     # Terraform configs
-├── kubernetes/         # K8s manifests
-├── scripts/            # Utility scripts
-└── plan/               # Implementation plans
+├── services/               # Microservices (npm workspaces)
+│   ├── frontend/           # React SPA
+│   ├── user-service/       # Authentication & profiles
+│   ├── product-service/    # Bicycle catalog
+│   ├── cart-service/       # Shopping cart (Redis)
+│   ├── order-service/      # Order lifecycle
+│   └── payment-service/    # Mock payment gateway
+├── shared/                 # Shared packages
+│   ├── types/              # @octo-eshop/types
+│   └── utils/              # @octo-eshop/utils
+├── infrastructure/         # Terraform (Azure)
+├── helm/                   # Helm charts (one per service)
+├── docs/                   # Architecture & pipeline docs
+└── scripts/                # Utility scripts
 ```
 
-## Technology Stack
+## Documentation
 
-- **Backend:** Node.js/TypeScript with Express
-- **Frontend:** React with Vite and Tailwind CSS
-- **Databases:** PostgreSQL + Redis
-- **ORM:** Prisma
-- **Infrastructure:** Azure AKS (Terraform)
-- **CI/CD:** GitHub Actions
-
-## Development
-
-Each service follows the same structure:
-
-```
-services/{service-name}/
-├── src/
-│   ├── controllers/    # HTTP handlers
-│   ├── services/       # Business logic
-│   ├── repositories/   # Data access
-│   ├── middleware/     # Auth, validation
-│   ├── routes/         # Express routes
-│   └── utils/          # Helpers
-├── tests/
-├── prisma/             # Schema & migrations
-├── Dockerfile
-└── package.json
-```
+| Document                                         | Description                                             |
+| ------------------------------------------------ | ------------------------------------------------------- |
+| [Azure Architecture](docs/azure-architecture.md) | Infrastructure design, Azure services, network topology |
+| [CI/CD Pipeline](docs/cicd-pipeline.md)          | Workflows, deployment strategy, operational runbook     |
 
 ## License
 
