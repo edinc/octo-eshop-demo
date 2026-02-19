@@ -1,6 +1,22 @@
 import axios, { AxiosInstance, AxiosError } from 'axios';
 import { config } from '../config';
 
+const ALLOWED_PAYMENT_HOSTS = [
+  'payment-service',
+  'localhost',
+  'payment-service.octo-eshop-dev.svc.cluster.local',
+  'payment-service.octo-eshop-staging.svc.cluster.local',
+  'payment-service.octo-eshop-production.svc.cluster.local',
+];
+
+function validateServiceUrl(url: string): string {
+  const parsed = new URL(url);
+  if (!ALLOWED_PAYMENT_HOSTS.includes(parsed.hostname)) {
+    throw new Error(`Untrusted payment service host: ${parsed.hostname}`);
+  }
+  return url;
+}
+
 interface ProcessPaymentRequest {
   orderId: string;
   amount: number;
@@ -19,7 +35,7 @@ export class PaymentServiceClient {
 
   constructor() {
     this.client = axios.create({
-      baseURL: config.paymentServiceUrl,
+      baseURL: validateServiceUrl(config.paymentServiceUrl),
       timeout: 30000,
       headers: {
         'Content-Type': 'application/json',

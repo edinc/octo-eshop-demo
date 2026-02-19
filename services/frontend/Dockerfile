@@ -1,5 +1,5 @@
 # Stage 1: Build
-FROM node:20-slim AS builder
+FROM node:22-slim AS builder
 
 WORKDIR /app
 
@@ -25,7 +25,7 @@ ENV VITE_API_URL=$VITE_API_URL
 RUN npm run build
 
 # Stage 2: Production with nginx
-FROM nginx:1.25-alpine AS production
+FROM nginx:1.27-alpine AS production
 
 # Copy custom nginx config as template
 COPY services/frontend/nginx.conf /etc/nginx/nginx.conf.template
