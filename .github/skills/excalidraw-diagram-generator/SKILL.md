@@ -143,10 +143,12 @@ Create the `.excalidraw` file with appropriate elements:
 - **Size**: `width`, `height`
 - **Style**: `strokeColor`, `backgroundColor`, `fillStyle`
 - **Font**: `fontFamily: 5` (Excalifont - **required for all text elements**)
-- **Text**: Embedded text for labels
-- **Connections**: `points` array for arrows
+- **Text in shapes**: Use `boundElements`/`containerId` pattern (see schema reference)
+- **Connections**: `points` array for arrows, with `startArrowhead: null`, `endArrowhead: "arrow"`
 
-**Important**: All text elements must use `fontFamily: 5` (Excalifont) for consistent visual appearance.
+**Important**: All text elements must use `fontFamily: 5` (Excalifont). Text inside shapes
+**must** use the `boundElements`/`containerId` pattern — the `text` property directly on
+rectangle/ellipse/diamond does NOT render in modern Excalidraw.
 
 ### Step 5: Format the Output
 
@@ -255,13 +257,82 @@ Would you like me to start with the high-level view?"
 
 ## Troubleshooting
 
-| Issue                     | Solution                                                    |
-| ------------------------- | ----------------------------------------------------------- |
-| Elements overlap          | Increase spacing between coordinates                        |
-| Text doesn't fit in boxes | Increase box width or reduce font size                      |
-| Too many elements         | Break into multiple diagrams                                |
-| Unclear layout            | Use grid layout (rows/columns) or radial layout (mind maps) |
-| Colors inconsistent       | Define color palette upfront based on element types         |
+| Issue                     | Solution                                                                     |
+| ------------------------- | ---------------------------------------------------------------------------- |
+| Elements overlap          | Increase spacing between coordinates                                         |
+| Text doesn't show in box  | **Use boundElements/containerId pattern** (see schema reference)             |
+| Text doesn't fit in boxes | Increase box width or reduce font size                                       |
+| Too many elements         | Break into multiple diagrams                                                 |
+| Unclear layout            | Use grid layout (rows/columns) or radial layout (mind maps)                  |
+| Colors inconsistent       | Define color palette upfront based on element types                          |
+| "Error: invalid file"     | Run `sanitize-diagram.py` to strip deprecated icon library properties        |
+| Icons too large           | Use azure-cloud-services/azure-containers/azure-network libraries (60-140px) |
+| Icon text labels clutter  | Run `sanitize-diagram.py --remove-icon-text` after adding icons              |
+
+## Known Issues & Workarounds
+
+### Text Inside Shapes
+
+**⚠️ CRITICAL**: The `text` property directly on rectangle/ellipse/diamond does **NOT render**
+in modern Excalidraw. All text-in-shape examples in older tutorials are wrong.
+
+**Correct approach**: Use the **boundElements/containerId** pattern:
+
+1. Shape element gets: `"boundElements": [{"id": "text-id", "type": "text"}]`
+2. Separate text element gets: `"containerId": "shape-id"`, `"autoResize": true`, `"lineHeight": 1.25`, `"originalText": "same as text"`
+3. Text position: `x = shape_x + (shape_w - text_w)/2`, `y = shape_y + (shape_h - text_h)/2`
+4. Text size: `width ≈ max_line_length * fontSize * 0.6`, `height ≈ fontSize * 1.25 * num_lines`
+
+See `references/excalidraw-schema.md` for full examples.
+
+### Icon Library Compatibility
+
+Icon libraries from excalidraw.com use older Excalidraw format with deprecated properties
+that cause **"Error: invalid file"** in current versions.
+
+**Deprecated properties to strip:**
+
+- `strokeSharpness` → replaced by `roundness`
+- `baseline` on text elements → removed
+- `startArrowhead`/`endArrowhead` on `line` elements → only valid on `arrow` type
+- `boundElements: []` → must be `null`
+
+**Solution**: Always run `sanitize-diagram.py` after adding icon library elements.
+
+### Icon Sizing
+
+Icons from libraries **cannot be reliably resized** programmatically. Scaling icon elements
+(coordinates, dimensions, strokeWidth, points arrays) produces files that fail validation.
+
+**Solution**: Design diagram layout to accommodate icons at their natural size:
+
+- `azure-cloud-services`: ~60-130px (recommended for most diagrams)
+- `azure-containers`: ~70-130px (recommended)
+- `azure-network`: ~50-140px (recommended)
+- `microsoft-azure-cloud-icons`: 100-500px (**too large** for most diagrams)
+- `github-icons`: 275-500px (**too large**, also only git workflow icons)
+
+### Icon Text Labels
+
+Library icons include built-in text labels (e.g., "Microsoft Azure", "Kubernetes Services").
+When the diagram has its own labels, icon text labels create visual clutter.
+
+**Solution**: Strip icon text labels after insertion using `sanitize-diagram.py --remove-icon-text`.
+
+### Post-Processing Workflow for Icons
+
+After using `add-icon-to-diagram.py` to add icons, always follow this workflow:
+
+```bash
+# 1. Save list of original element IDs before adding icons
+python -c "import json; d=json.load(open('diagram.excalidraw')); print(json.dumps([e['id'] for e in d['elements']]))" > original-ids.json
+
+# 2. Add icons using add-icon-to-diagram.py
+python scripts/add-icon-to-diagram.py diagram.excalidraw "icon-name" 100 200
+
+# 3. Sanitize: strip deprecated properties + remove icon text labels
+python scripts/sanitize-diagram.py diagram.excalidraw --remove-icon-text --original-ids-file original-ids.json
+```
 
 ## Advanced Techniques
 
@@ -320,10 +391,14 @@ Before delivering the diagram:
 - [ ] Coordinates prevent overlapping
 - [ ] Text is readable (font size 16+)
 - [ ] **All text elements use `fontFamily: 5` (Excalifont)**
+- [ ] **Text inside shapes uses boundElements/containerId pattern (NOT `text` property on shapes)**
+- [ ] **Text elements have `originalText`, `autoResize: true`, `lineHeight: 1.25`**
+- [ ] Arrows have `startArrowhead: null`, `endArrowhead: "arrow"`, `lastCommittedPoint: null`
 - [ ] Arrows connect logically
 - [ ] Colors follow consistent scheme
 - [ ] File is valid JSON
 - [ ] Element count is reasonable (<20 for clarity)
+- [ ] **If icons added: `sanitize-diagram.py` was run to strip deprecated properties**
 
 ## Icon Libraries (Optional Enhancement)
 
@@ -461,20 +536,26 @@ The repository includes Python scripts that handle icon integration automaticall
 
    ```bash
    # Step 1: Create base diagram with title and structure
-   # (Create .excalidraw file with initial elements)
+   # (Create .excalidraw file with initial elements using boundElements/containerId pattern)
 
-   # Step 2: Add icons with labels
+   # Step 2: Save original element IDs (for sanitization later)
+   python -c "import json; d=json.load(open('my-diagram.excalidraw')); print(json.dumps([e['id'] for e in d['elements']]))" > original-ids.json
+
+   # Step 3: Add icons with labels
    python scripts/add-icon-to-diagram.py my-diagram.excalidraw "Internet-gateway" 200 150 --label "Internet Gateway"
    python scripts/add-icon-to-diagram.py my-diagram.excalidraw VPC 250 250
    python scripts/add-icon-to-diagram.py my-diagram.excalidraw ELB 350 300 --label "Load Balancer"
    python scripts/add-icon-to-diagram.py my-diagram.excalidraw EC2 450 350 --label "EC2 Instance"
    python scripts/add-icon-to-diagram.py my-diagram.excalidraw RDS 550 400 --label "Database"
 
-   # Step 3: Add connecting arrows
+   # Step 4: Add connecting arrows
    python scripts/add-arrow.py my-diagram.excalidraw 250 200 300 250  # Internet → VPC
    python scripts/add-arrow.py my-diagram.excalidraw 300 300 400 300  # VPC → ELB
    python scripts/add-arrow.py my-diagram.excalidraw 400 330 500 350  # ELB → EC2
    python scripts/add-arrow.py my-diagram.excalidraw 500 380 600 400  # EC2 → RDS
+
+   # Step 5: Sanitize (strip deprecated properties + remove icon text labels)
+   python scripts/sanitize-diagram.py my-diagram.excalidraw --remove-icon-text --original-ids-file original-ids.json
    ```
 
 **Benefits of Python Script Approach**:
@@ -558,23 +639,30 @@ Only use this if Python scripts are unavailable:
 ```bash
 # Step 1: Create base diagram file with title
 # Create my-aws-diagram.excalidraw with basic structure (title, etc.)
+# IMPORTANT: Use boundElements/containerId pattern for all text in shapes
 
 # Step 2: Check icon availability
 # Read: libraries/aws-architecture-icons/reference.md
 # Confirm icons exist: Internet-gateway, VPC, ELB, EC2, RDS
 
-# Step 3: Add icons with Python script
+# Step 3: Save original element IDs
+python -c "import json; d=json.load(open('my-aws-diagram.excalidraw')); print(json.dumps([e['id'] for e in d['elements']]))" > original-ids.json
+
+# Step 4: Add icons with Python script
 python scripts/add-icon-to-diagram.py my-aws-diagram.excalidraw "Internet-gateway" 150 100 --label "Internet Gateway"
 python scripts/add-icon-to-diagram.py my-aws-diagram.excalidraw VPC 200 200
 python scripts/add-icon-to-diagram.py my-aws-diagram.excalidraw ELB 350 250 --label "Load Balancer"
 python scripts/add-icon-to-diagram.py my-aws-diagram.excalidraw EC2 500 300 --label "Web Server"
 python scripts/add-icon-to-diagram.py my-aws-diagram.excalidraw RDS 650 350 --label "Database"
 
-# Step 4: Add connecting arrows
+# Step 5: Add connecting arrows
 python scripts/add-arrow.py my-aws-diagram.excalidraw 200 150 250 200  # Internet → VPC
 python scripts/add-arrow.py my-aws-diagram.excalidraw 265 230 350 250  # VPC → ELB
 python scripts/add-arrow.py my-aws-diagram.excalidraw 415 280 500 300  # ELB → EC2
 python scripts/add-arrow.py my-aws-diagram.excalidraw 565 330 650 350 --label "SQL" --style dashed
+
+# Step 6: Sanitize (strip deprecated properties + remove icon text labels)
+python scripts/sanitize-diagram.py my-aws-diagram.excalidraw --remove-icon-text --original-ids-file original-ids.json
 
 # Result: Complete diagram with professional AWS icons, labels, and connections
 ```

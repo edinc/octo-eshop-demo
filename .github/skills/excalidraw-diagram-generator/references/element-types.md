@@ -21,14 +21,13 @@ Detailed specifications for each Excalidraw element type with visual examples an
 
 ### Properties
 
+**⚠️ Text inside shapes requires the boundElements/containerId pattern — see schema reference.**
+
 ```typescript
 {
   type: "rectangle",
   roundness: { type: 3 },  // Rounded corners
-  text: "Step Name",       // Optional embedded text
-  fontSize: 20,
-  textAlign: "center",
-  verticalAlign: "middle"
+  boundElements: [{ id: "text-id", type: "text" }]  // For text inside
 }
 ```
 
@@ -52,19 +51,37 @@ Detailed specifications for each Excalidraw element type with visual examples an
 ### Example
 
 ```json
-{
-  "type": "rectangle",
-  "x": 100,
-  "y": 100,
-  "width": 200,
-  "height": 80,
-  "backgroundColor": "#b2f2bb",
-  "text": "Validate Input",
-  "fontSize": 20,
-  "textAlign": "center",
-  "verticalAlign": "middle",
-  "roundness": { "type": 3 }
-}
+[
+  {
+    "type": "rectangle",
+    "id": "step1",
+    "x": 100,
+    "y": 100,
+    "width": 200,
+    "height": 80,
+    "backgroundColor": "#b2f2bb",
+    "roundness": { "type": 3 },
+    "boundElements": [{ "id": "step1-text", "type": "text" }]
+  },
+  {
+    "type": "text",
+    "id": "step1-text",
+    "x": 115,
+    "y": 120,
+    "width": 170,
+    "height": 25,
+    "text": "Validate Input",
+    "originalText": "Validate Input",
+    "fontSize": 20,
+    "fontFamily": 5,
+    "textAlign": "center",
+    "verticalAlign": "middle",
+    "containerId": "step1",
+    "autoResize": true,
+    "lineHeight": 1.25,
+    "roundness": null
+  }
+]
 ```
 
 ---
@@ -78,10 +95,7 @@ Detailed specifications for each Excalidraw element type with visual examples an
 ```typescript
 {
   type: "ellipse",
-  text: "Start",
-  fontSize: 18,
-  textAlign: "center",
-  verticalAlign: "middle"
+  boundElements: [{ id: "text-id", type: "text" }]  // For text inside
 }
 ```
 
@@ -107,18 +121,36 @@ For circular shapes, use `width === height`:
 ### Example
 
 ```json
-{
-  "type": "ellipse",
-  "x": 100,
-  "y": 100,
-  "width": 120,
-  "height": 120,
-  "backgroundColor": "#d0f0c0",
-  "text": "Start",
-  "fontSize": 18,
-  "textAlign": "center",
-  "verticalAlign": "middle"
-}
+[
+  {
+    "type": "ellipse",
+    "id": "start1",
+    "x": 100,
+    "y": 100,
+    "width": 120,
+    "height": 120,
+    "backgroundColor": "#d0f0c0",
+    "boundElements": [{ "id": "start1-text", "type": "text" }]
+  },
+  {
+    "type": "text",
+    "id": "start1-text",
+    "x": 128,
+    "y": 142,
+    "width": 60,
+    "height": 25,
+    "text": "Start",
+    "originalText": "Start",
+    "fontSize": 18,
+    "fontFamily": 5,
+    "textAlign": "center",
+    "verticalAlign": "middle",
+    "containerId": "start1",
+    "autoResize": true,
+    "lineHeight": 1.25,
+    "roundness": null
+  }
+]
 ```
 
 ---
@@ -132,10 +164,7 @@ For circular shapes, use `width === height`:
 ```typescript
 {
   type: "diamond",
-  text: "Valid?",
-  fontSize: 18,
-  textAlign: "center",
-  verticalAlign": "middle"
+  boundElements: [{ id: "text-id", type: "text" }]  // For text inside
 }
 ```
 
@@ -160,18 +189,36 @@ Diamonds need more space than rectangles for the same text:
 ### Example
 
 ```json
-{
-  "type": "diamond",
-  "x": 100,
-  "y": 100,
-  "width": 150,
-  "height": 150,
-  "backgroundColor": "#ffe4a3",
-  "text": "Valid?",
-  "fontSize": 18,
-  "textAlign": "center",
-  "verticalAlign": "middle"
-}
+[
+  {
+    "type": "diamond",
+    "id": "dec1",
+    "x": 100,
+    "y": 100,
+    "width": 150,
+    "height": 150,
+    "backgroundColor": "#ffe4a3",
+    "boundElements": [{ "id": "dec1-text", "type": "text" }]
+  },
+  {
+    "type": "text",
+    "id": "dec1-text",
+    "x": 140,
+    "y": 165,
+    "width": 72,
+    "height": 22,
+    "text": "Valid?",
+    "originalText": "Valid?",
+    "fontSize": 18,
+    "fontFamily": 5,
+    "textAlign": "center",
+    "verticalAlign": "middle",
+    "containerId": "dec1",
+    "autoResize": true,
+    "lineHeight": 1.25,
+    "roundness": null
+  }
+]
 ```
 
 ---
@@ -188,7 +235,10 @@ Diamonds need more space than rectangles for the same text:
   points: [[0, 0], [endX, endY]],  // Relative coordinates
   roundness: { type: 2 },          // Curved
   startBinding: null,              // Or { elementId, focus, gap }
-  endBinding: null
+  endBinding: null,
+  startArrowhead: null,
+  endArrowhead: "arrow",           // Or null for no arrowhead
+  lastCommittedPoint: null
 }
 ```
 
@@ -326,10 +376,14 @@ Use separate text elements positioned near arrow midpoint:
 {
   type: "text",
   text: "Label text",
+  originalText: "Label text",     // Must match text
   fontSize: 20,
-  fontFamily: 1,        // 1=Virgil, 2=Helvetica, 3=Cascadia
+  fontFamily: 5,                  // Always use 5 (Excalifont)
   textAlign: "left",
-  verticalAlign: "top"
+  verticalAlign: "top",
+  containerId: null,              // Set to shape ID for text inside shapes
+  autoResize: true,               // true for container-bound text
+  lineHeight: 1.25
 }
 ```
 
@@ -350,11 +404,11 @@ Use separate text elements positioned near arrow midpoint:
 const width = text.length * fontSize * 0.6;
 
 // Approximate height (single line)
-const height = fontSize * 1.2;
+const height = fontSize * 1.25;
 
 // Multi-line
 const lines = text.split('\n').length;
-const height = fontSize * 1.2 * lines;
+const height = fontSize * 1.25 * lines;
 ```
 
 ### Text Positioning
@@ -375,10 +429,15 @@ const height = fontSize * 1.2 * lines;
   "width": 400,
   "height": 40,
   "text": "System Architecture",
+  "originalText": "System Architecture",
   "fontSize": 32,
-  "fontFamily": 2,
+  "fontFamily": 5,
   "textAlign": "center",
-  "verticalAlign": "top"
+  "verticalAlign": "top",
+  "containerId": null,
+  "autoResize": true,
+  "lineHeight": 1.25,
+  "roundness": null
 }
 ```
 
@@ -392,10 +451,15 @@ const height = fontSize * 1.2 * lines;
   "width": 100,
   "height": 20,
   "text": "User input",
+  "originalText": "User input",
   "fontSize": 14,
-  "fontFamily": 1,
+  "fontFamily": 5,
   "textAlign": "left",
-  "verticalAlign": "top"
+  "verticalAlign": "top",
+  "containerId": null,
+  "autoResize": true,
+  "lineHeight": 1.25,
+  "roundness": null
 }
 ```
 
@@ -404,6 +468,8 @@ const height = fontSize * 1.2 * lines;
 ## Combining Elements
 
 ### Pattern: Labeled Box
+
+**⚠️ Always use boundElements/containerId — never put `text` directly on shapes.**
 
 ```json
 [
@@ -414,9 +480,25 @@ const height = fontSize * 1.2 * lines;
     "y": 100,
     "width": 200,
     "height": 100,
+    "boundElements": [{ "id": "box1-text", "type": "text" }]
+  },
+  {
+    "type": "text",
+    "id": "box1-text",
+    "x": 115,
+    "y": 130,
+    "width": 170,
+    "height": 25,
     "text": "Component",
+    "originalText": "Component",
+    "fontSize": 20,
+    "fontFamily": 5,
     "textAlign": "center",
-    "verticalAlign": "middle"
+    "verticalAlign": "middle",
+    "containerId": "box1",
+    "autoResize": true,
+    "lineHeight": 1.25,
+    "roundness": null
   }
 ]
 ```
@@ -432,7 +514,28 @@ const height = fontSize * 1.2 * lines;
     "y": 100,
     "width": 150,
     "height": 80,
-    "text": "Step 1"
+    "boundElements": [
+      { "id": "box1-text", "type": "text" },
+      { "id": "arrow1", "type": "arrow" }
+    ]
+  },
+  {
+    "type": "text",
+    "id": "box1-text",
+    "x": 115,
+    "y": 130,
+    "width": 120,
+    "height": 25,
+    "text": "Step 1",
+    "originalText": "Step 1",
+    "fontSize": 20,
+    "fontFamily": 5,
+    "textAlign": "center",
+    "verticalAlign": "middle",
+    "containerId": "box1",
+    "autoResize": true,
+    "lineHeight": 1.25,
+    "roundness": null
   },
   {
     "type": "arrow",
@@ -442,7 +545,12 @@ const height = fontSize * 1.2 * lines;
     "points": [
       [0, 0],
       [100, 0]
-    ]
+    ],
+    "startArrowhead": null,
+    "endArrowhead": "arrow",
+    "lastCommittedPoint": null,
+    "startBinding": null,
+    "endBinding": null
   },
   {
     "type": "rectangle",
@@ -451,7 +559,25 @@ const height = fontSize * 1.2 * lines;
     "y": 100,
     "width": 150,
     "height": 80,
-    "text": "Step 2"
+    "boundElements": [{ "id": "box2-text", "type": "text" }]
+  },
+  {
+    "type": "text",
+    "id": "box2-text",
+    "x": 365,
+    "y": 130,
+    "width": 120,
+    "height": 25,
+    "text": "Step 2",
+    "originalText": "Step 2",
+    "fontSize": 20,
+    "fontFamily": 5,
+    "textAlign": "center",
+    "verticalAlign": "middle",
+    "containerId": "box2",
+    "autoResize": true,
+    "lineHeight": 1.25,
+    "roundness": null
   }
 ]
 ```
@@ -467,7 +593,25 @@ const height = fontSize * 1.2 * lines;
     "y": 100,
     "width": 140,
     "height": 140,
-    "text": "Valid?"
+    "boundElements": [{ "id": "decision-text", "type": "text" }]
+  },
+  {
+    "type": "text",
+    "id": "decision-text",
+    "x": 133,
+    "y": 160,
+    "width": 72,
+    "height": 22,
+    "text": "Valid?",
+    "originalText": "Valid?",
+    "fontSize": 18,
+    "fontFamily": 5,
+    "textAlign": "center",
+    "verticalAlign": "middle",
+    "containerId": "decision",
+    "autoResize": true,
+    "lineHeight": 1.25,
+    "roundness": null
   },
   {
     "type": "arrow",
@@ -477,7 +621,12 @@ const height = fontSize * 1.2 * lines;
     "points": [
       [0, 0],
       [60, 0]
-    ]
+    ],
+    "startArrowhead": null,
+    "endArrowhead": "arrow",
+    "lastCommittedPoint": null,
+    "startBinding": null,
+    "endBinding": null
   },
   {
     "type": "text",
@@ -485,7 +634,13 @@ const height = fontSize * 1.2 * lines;
     "x": 250,
     "y": 150,
     "text": "Yes",
-    "fontSize": 14
+    "originalText": "Yes",
+    "fontSize": 14,
+    "fontFamily": 5,
+    "lineHeight": 1.25,
+    "roundness": null,
+    "containerId": null,
+    "autoResize": true
   },
   {
     "type": "rectangle",
@@ -494,7 +649,25 @@ const height = fontSize * 1.2 * lines;
     "y": 140,
     "width": 120,
     "height": 60,
-    "text": "Process"
+    "boundElements": [{ "id": "yes-box-text", "type": "text" }]
+  },
+  {
+    "type": "text",
+    "id": "yes-box-text",
+    "x": 315,
+    "y": 155,
+    "width": 90,
+    "height": 25,
+    "text": "Process",
+    "originalText": "Process",
+    "fontSize": 20,
+    "fontFamily": 5,
+    "textAlign": "center",
+    "verticalAlign": "middle",
+    "containerId": "yes-box",
+    "autoResize": true,
+    "lineHeight": 1.25,
+    "roundness": null
   }
 ]
 ```

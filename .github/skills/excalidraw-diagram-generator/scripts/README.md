@@ -197,3 +197,55 @@ python add-arrow.py diagram.excalidraw 300 200 500 300
 2. **(Optional)** Adds a label near the arrow midpoint
 3. **Appends** elements to the diagram
 4. **Saves** the updated file
+
+---
+
+## sanitize-diagram.py
+
+Strips deprecated properties from Excalidraw diagrams after adding icon library elements. Icon libraries from excalidraw.com (circa 2021-2022) use properties that cause **"Error: invalid file"** in current Excalidraw.
+
+### What It Fixes
+
+| Deprecated Property               | Affected Types | Action                                 |
+| --------------------------------- | -------------- | -------------------------------------- |
+| `strokeSharpness`                 | All elements   | Removed (use `roundness` instead)      |
+| `baseline`                        | `text`         | Removed                                |
+| `startArrowhead` / `endArrowhead` | `line` only    | Removed (valid on `arrow`, not `line`) |
+| `boundElements: []`               | All elements   | Converted to `null`                    |
+
+### Usage
+
+```bash
+# Basic sanitization (strip deprecated properties)
+python sanitize-diagram.py diagram.excalidraw
+
+# Also remove icon library text labels
+python sanitize-diagram.py diagram.excalidraw --remove-icon-text --original-ids-file original-ids.json
+
+# Write directly to file (no .edit suffix)
+python sanitize-diagram.py diagram.excalidraw --no-use-edit-suffix
+```
+
+### Options
+
+| Flag                       | Description                                                             |
+| -------------------------- | ----------------------------------------------------------------------- |
+| `--remove-icon-text`       | Remove text elements not in original diagram (icon labels)              |
+| `--original-ids-file PATH` | JSON file listing original element IDs (used with `--remove-icon-text`) |
+| `--no-use-edit-suffix`     | Write directly to file instead of `.edit` suffix                        |
+
+### Recommended Workflow
+
+After adding icons with `add-icon-to-diagram.py`:
+
+```bash
+# 1. Save original element IDs before adding icons
+python -c "import json; d=json.load(open('diagram.excalidraw')); print(json.dumps([e['id'] for e in d['elements']]))" > original-ids.json
+
+# 2. Add icons
+python add-icon-to-diagram.py diagram.excalidraw "Kubernetes-Services" 300 200
+python add-icon-to-diagram.py diagram.excalidraw "Azure-Cache-for-Redis" 500 200
+
+# 3. Sanitize
+python sanitize-diagram.py diagram.excalidraw --remove-icon-text --original-ids-file original-ids.json
+```
