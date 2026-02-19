@@ -20,7 +20,7 @@ jobs:
   terraform:
     name: Terraform ${{ inputs.action }} (${{ inputs.environment }})
     runs-on: ubuntu-latest
-    environment: ${{ inputs.environment }}
+    environment: ${{ inputs.action == 'apply' && inputs.environment || '' }}
     defaults:
       run:
         working-directory: infrastructure/terraform/environments/${{ inputs.environment }}
