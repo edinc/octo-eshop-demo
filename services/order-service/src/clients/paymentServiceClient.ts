@@ -1,6 +1,17 @@
 import axios, { AxiosInstance, AxiosError } from 'axios';
 import { config } from '../config';
 
+const ALLOWED_PAYMENT_HOSTS = ['payment-service', 'localhost'];
+
+function validateServiceUrl(url: string): string {
+  const parsed = new URL(url);
+  const hostname = parsed.hostname;
+  if (!ALLOWED_PAYMENT_HOSTS.some(h => hostname === h || hostname.endsWith(`.${h}`))) {
+    throw new Error(`Untrusted payment service host: ${hostname}`);
+  }
+  return url;
+}
+
 interface ProcessPaymentRequest {
   orderId: string;
   amount: number;
@@ -19,7 +30,7 @@ export class PaymentServiceClient {
 
   constructor() {
     this.client = axios.create({
-      baseURL: config.paymentServiceUrl,
+      baseURL: validateServiceUrl(config.paymentServiceUrl),
       timeout: 30000,
       headers: {
         'Content-Type': 'application/json',

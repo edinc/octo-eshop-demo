@@ -1,5 +1,5 @@
 # Stage 1: Build
-FROM node:20-slim AS builder
+FROM node:22-slim AS builder
 
 WORKDIR /app
 
@@ -20,7 +20,7 @@ RUN npm run build --workspace=@octo-eshop/utils
 RUN npm run build --workspace=@octo-eshop/payment-service
 
 # Stage 2: Production
-FROM node:20-slim AS production
+FROM node:22-slim AS production
 
 WORKDIR /app
 
