@@ -18,9 +18,10 @@ resource "azurerm_redis_cache" "main" {
   family              = var.family
   sku_name            = var.sku_name
 
-  non_ssl_port_enabled = false
-  minimum_tls_version  = "1.2"
-  subnet_id            = var.sku_name == "Premium" ? var.subnet_id : null
+  non_ssl_port_enabled          = false
+  minimum_tls_version           = "1.2"
+  access_key_authentication_enabled = true
+  subnet_id                     = var.sku_name == "Premium" ? var.subnet_id : null
 
   tags = var.tags
 }
