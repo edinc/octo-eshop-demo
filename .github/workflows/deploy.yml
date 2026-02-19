@@ -87,7 +87,9 @@ jobs:
 
           # Deploy network policies first
           helm upgrade --install network-policies ./helm/charts/network-policies \
-            --namespace "${NS}" --wait --timeout 2m
+            --namespace "${NS}" \
+            -f ./helm/charts/network-policies/values-${{ inputs.environment }}.yaml \
+            --wait --timeout 2m
 
           # Adopt any orphaned secrets so Helm can manage them
           for service in user-service product-service cart-service order-service payment-service; do

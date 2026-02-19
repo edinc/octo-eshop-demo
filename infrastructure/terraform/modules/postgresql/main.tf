@@ -19,16 +19,7 @@ resource "azurerm_postgresql_flexible_server" "main" {
   sku_name   = var.sku_name
 
   backup_retention_days        = var.backup_retention_days
-  geo_redundant_backup_enabled = var.environment == "production"
-
-  dynamic "high_availability" {
-    for_each = var.environment == "production" ? [1] : []
-
-    content {
-      mode                      = "ZoneRedundant"
-      standby_availability_zone = "2"
-    }
-  }
+  geo_redundant_backup_enabled = false
 
   tags = var.tags
 }
