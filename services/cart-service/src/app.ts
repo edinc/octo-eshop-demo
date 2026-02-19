@@ -8,17 +8,22 @@ import { errorHandler } from './middleware/errorHandler';
 
 const app = express();
 
+// Trust proxy for correct client IP behind nginx/load balancer
+app.set('trust proxy', 1);
+
 // Middleware
 app.use(helmet());
 app.use(cors());
 app.use(morgan('combined'));
 app.use(express.json());
-app.use(rateLimit({ windowMs: 15 * 60 * 1000, max: 100, standardHeaders: true }));
 
-// Health check
+// Health check (before rate limiter)
 app.get('/health', (_, res) => {
   res.json({ status: 'healthy', service: 'cart-service' });
 });
+
+// Rate limiting on API routes only
+app.use('/api', rateLimit({ windowMs: 15 * 60 * 1000, max: 100, standardHeaders: true }));
 
 // Routes
 app.use('/api/cart', cartRoutes);

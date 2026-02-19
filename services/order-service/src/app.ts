@@ -5,13 +5,18 @@ import { errorHandler } from './middleware/errorHandler';
 
 const app = express();
 
-app.use(express.json());
-app.use(rateLimit({ windowMs: 15 * 60 * 1000, max: 100, standardHeaders: true }));
+// Trust proxy for correct client IP behind nginx/load balancer
+app.set('trust proxy', 1);
 
-// Health check
+app.use(express.json());
+
+// Health check (before rate limiter)
 app.get('/health', (_req, res) => {
   res.json({ status: 'ok', service: 'order-service' });
 });
+
+// Rate limiting on API routes only
+app.use('/api', rateLimit({ windowMs: 15 * 60 * 1000, max: 100, standardHeaders: true }));
 
 // Routes
 app.use('/api/orders', orderRoutes);

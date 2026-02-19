@@ -1,13 +1,18 @@
 import axios, { AxiosInstance, AxiosError } from 'axios';
 import { config } from '../config';
 
-const ALLOWED_PAYMENT_HOSTS = ['payment-service', 'localhost'];
+const ALLOWED_PAYMENT_HOSTS = [
+  'payment-service',
+  'localhost',
+  'payment-service.octo-eshop-dev.svc.cluster.local',
+  'payment-service.octo-eshop-staging.svc.cluster.local',
+  'payment-service.octo-eshop-production.svc.cluster.local',
+];
 
 function validateServiceUrl(url: string): string {
   const parsed = new URL(url);
-  const hostname = parsed.hostname;
-  if (!ALLOWED_PAYMENT_HOSTS.some(h => hostname === h || hostname.endsWith(`.${h}`))) {
-    throw new Error(`Untrusted payment service host: ${hostname}`);
+  if (!ALLOWED_PAYMENT_HOSTS.includes(parsed.hostname)) {
+    throw new Error(`Untrusted payment service host: ${parsed.hostname}`);
   }
   return url;
 }
