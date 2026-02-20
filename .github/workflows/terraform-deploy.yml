@@ -85,18 +85,22 @@ jobs:
           gh secret set AKS_CLUSTER_NAME --body "$AKS_NAME" --env "$ENV" --repo "$REPO" || {
             echo "::warning::Failed to set AKS_CLUSTER_NAME."
           }
-          gh secret set ACR_LOGIN_SERVER --body "$ACR_SERVER" --repo "$REPO" || {
-            echo "::warning::Failed to set ACR_LOGIN_SERVER."
-          }
+          # Only set repo-level ACR secrets from the dev environment to avoid
+          # staging/production overwrites (all environments share the dev ACR for builds)
+          if [ "$ENV" == "dev" ]; then
+            gh secret set ACR_LOGIN_SERVER --body "$ACR_SERVER" --repo "$REPO" || {
+              echo "::warning::Failed to set ACR_LOGIN_SERVER."
+            }
 
-          # Get ACR credentials
-          ACR_NAME=$(terraform output -raw acr_name)
-          ACR_CREDS=$(az acr credential show --name "$ACR_NAME" 2>/dev/null || true)
-          if [ -n "$ACR_CREDS" ]; then
-            ACR_USER=$(echo "$ACR_CREDS" | jq -r '.username')
-            ACR_PASS=$(echo "$ACR_CREDS" | jq -r '.passwords[0].value')
-            gh secret set ACR_USERNAME --body "$ACR_USER" --repo "$REPO"
-            gh secret set ACR_PASSWORD --body "$ACR_PASS" --repo "$REPO"
+            # Get ACR credentials
+            ACR_NAME=$(terraform output -raw acr_name)
+            ACR_CREDS=$(az acr credential show --name "$ACR_NAME" 2>/dev/null || true)
+            if [ -n "$ACR_CREDS" ]; then
+              ACR_USER=$(echo "$ACR_CREDS" | jq -r '.username')
+              ACR_PASS=$(echo "$ACR_CREDS" | jq -r '.passwords[0].value')
+              gh secret set ACR_USERNAME --body "$ACR_USER" --repo "$REPO"
+              gh secret set ACR_PASSWORD --body "$ACR_PASS" --repo "$REPO"
+            fi
           fi
 
           # Read secrets from Key Vault and set as GitHub environment secrets
