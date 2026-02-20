@@ -95,6 +95,7 @@ graph TB
 | **Deploy to Environment** | `deploy.yml`           | Reusable     | Called by build-push, manual     |
 | **Infrastructure**        | `infrastructure.yml`   | Orchestrator | Push (terraform changes), manual |
 | **Terraform Deploy**      | `terraform-deploy.yml` | Reusable     | Called by infrastructure         |
+| **Cluster Setup**         | `cluster-setup.yml`    | Reusable     | Called by infrastructure (apply) |
 | **Rollback**              | `rollback.yml`         | Standalone   | Manual only                      |
 
 ### Workflow Call Graph
@@ -109,10 +110,12 @@ graph LR
     subgraph "Reusable Workflows"
         DEP[deploy.yml]
         TFD[terraform-deploy.yml]
+        CSU[cluster-setup.yml]
     end
 
     BP -->|workflow_call| DEP
     INF -->|workflow_call| TFD
+    INF -->|workflow_call<br/>after apply| CSU
 
     BP -.->|workflow_dispatch| BP
     INF -.->|workflow_dispatch| INF
@@ -120,6 +123,7 @@ graph LR
 
     style DEP fill:#FF9800,color:white
     style TFD fill:#9C27B0,color:white
+    style CSU fill:#00BCD4,color:white
 ```
 
 ---
@@ -211,10 +215,14 @@ The pipeline uses [dorny/paths-filter](https://github.com/dorny/paths-filter) to
 
 **Image Tagging Strategy:**
 
+The image tag is resolved once in a dedicated `resolve-tag` job _before_ the build matrix runs, ensuring all services use the same consistent tag.
+
 | Branch              | Tags                                      |
 | ------------------- | ----------------------------------------- |
 | `main`              | `latest`, `<commit-sha-short>`            |
 | `develop` / feature | `<branch>-<commit-sha-short>`, `<branch>` |
+
+> **Note:** Deployments always use the `<commit-sha-short>` tag (not `latest`) to ensure traceability.
 
 **Manual Dispatch:**
 Can be triggered manually with `build_all: true` to force-build all 6 services regardless of changes.
@@ -301,11 +309,27 @@ graph TD
     F --> G[terraform plan -out=tfplan]
     G --> H{Action = apply?}
     H -->|Yes| I[terraform apply -auto-approve tfplan]
-    H -->|No| J[Stop after plan]
+    I --> J[Sync Secrets to GitHub<br/>Terraform outputs + Key Vault → gh secret set]
+    J --> K[Cluster Setup<br/>ESO + ingress-nginx + ClusterSecretStore]
+    H -->|No| L[Stop after plan]
 
     style I fill:#FFCDD2
-    style J fill:#C8E6C9
+    style J fill:#CE93D8
+    style K fill:#80DEEA
+    style L fill:#C8E6C9
 ```
+
+**Post-Apply Automation:**
+
+After `terraform apply`, two additional steps run automatically:
+
+1. **Secrets Sync** — reads Terraform outputs and Key Vault secrets, then sets them as GitHub Actions environment secrets via `gh secret set`. Requires a `GH_TOKEN` secret (GitHub PAT with `repo` scope).
+
+2. **Cluster Setup** (`cluster-setup.yml`) — configures AKS cluster-level dependencies:
+   - Installs **ingress-nginx** controller via Helm
+   - Installs **External Secrets Operator** (ESO) via Helm
+   - Creates a **managed identity** with federated credentials for workload identity
+   - Creates a **ClusterSecretStore** CRD pointing to Azure Key Vault
 
 **Terraform State Backend:**
 Each environment stores state in the shared Azure Storage Account:
@@ -391,16 +415,17 @@ graph LR
 | Secret              | Description                                                               | Used By       |
 | ------------------- | ------------------------------------------------------------------------- | ------------- |
 | `AZURE_CREDENTIALS` | Service principal JSON (clientId, clientSecret, tenantId, subscriptionId) | All workflows |
+| `ACR_LOGIN_SERVER`  | ACR login URL (shared across environments)                                | Build & Push  |
+| `ACR_USERNAME`      | ACR admin username                                                        | Build & Push  |
+| `ACR_PASSWORD`      | ACR admin password                                                        | Build & Push  |
+| `GH_TOKEN`          | GitHub PAT with `repo` scope (for automated secrets sync)                 | Terraform     |
 
 ### Environment-Scoped Secrets
 
-Each GitHub Environment (dev, staging, production) has its own set of secrets that override repo-level defaults:
+Each GitHub Environment (dev, staging, production) has its own set of secrets. These are **automatically synced** from Azure Key Vault after `terraform apply`:
 
 | Secret                         | Description                                      |
 | ------------------------------ | ------------------------------------------------ |
-| `ACR_LOGIN_SERVER`             | ACR login URL (e.g., `octoeshopdev*.azurecr.io`) |
-| `ACR_USERNAME`                 | ACR admin username                               |
-| `ACR_PASSWORD`                 | ACR admin password                               |
 | `AKS_RESOURCE_GROUP`           | Azure resource group for AKS                     |
 | `AKS_CLUSTER_NAME`             | AKS cluster name                                 |
 | `USER_DATABASE_URL`            | PostgreSQL connection string for user-service    |
@@ -414,14 +439,25 @@ Each GitHub Environment (dev, staging, production) has its own set of secrets th
 
 ```mermaid
 graph LR
-    AKV[Azure Key Vault<br/>source of truth] -->|extracted by| GHS[GitHub Environment<br/>Secrets]
+    TF[Terraform Apply] -->|stores secrets| AKV[Azure Key Vault]
+    TF -->|outputs| SYNC[Secrets Sync Step]
+    AKV -->|read by| SYNC
+    SYNC -->|gh secret set| GHS[GitHub Environment<br/>Secrets]
     GHS -->|deploy.yml| K8S[K8s Secrets<br/>kubectl create secret]
     K8S -->|mounted as env vars| POD[Service Pods]
 
+    AKV -.->|ExternalSecret CRD| ESO[External Secrets<br/>Operator]
+    ESO -.->|creates| K8S
+
+    style TF fill:#9C27B0,color:white
     style AKV fill:#7B1FA2,color:white
+    style SYNC fill:#CE93D8,color:white
     style GHS fill:#1565C0,color:white
     style K8S fill:#2E7D32,color:white
+    style ESO fill:#00BCD4,color:white
 ```
+
+> **Note:** Production uses External Secrets Operator (ESO) with Azure Workload Identity to sync secrets directly from Key Vault to Kubernetes, bypassing GitHub secrets for sensitive values.
 
 ---
 
@@ -464,6 +500,22 @@ The `network-policies` chart is deployed **first** in every environment. It defi
 ---
 
 ## Operational Runbook
+
+### Bootstrap from scratch
+
+To recreate the entire platform from zero:
+
+```bash
+# 1. One-time bootstrap: Terraform backend + Azure SP + GitHub secrets
+./scripts/bootstrap-backend.sh --subscription <sub-id> --repo <owner/repo>
+
+# 2. Provision infrastructure (creates AKS, databases, Key Vault, etc.)
+#    This also syncs secrets to GitHub and installs cluster add-ons
+gh workflow run infrastructure.yml -f environment=dev -f action=apply
+
+# 3. Build and deploy all services
+gh workflow run build-push.yml -f build_all=true
+```
 
 ### Deploy a single service manually
 
