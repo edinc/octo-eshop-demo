@@ -36,10 +36,12 @@ jobs:
         run: |
           SHA_SHORT=$(git rev-parse --short HEAD)
           BRANCH=${GITHUB_REF_NAME}
+          # Sanitize branch name: replace / with - for valid Docker tags
+          BRANCH_SAFE=$(echo "$BRANCH" | tr '/' '-')
           if [ "$BRANCH" == "main" ]; then
             echo "image_tag=${SHA_SHORT}" >> "$GITHUB_OUTPUT"
           else
-            echo "image_tag=${BRANCH}-${SHA_SHORT}" >> "$GITHUB_OUTPUT"
+            echo "image_tag=${BRANCH_SAFE}-${SHA_SHORT}" >> "$GITHUB_OUTPUT"
           fi
 
   changes:
