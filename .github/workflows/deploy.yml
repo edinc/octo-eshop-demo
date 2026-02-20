@@ -45,7 +45,11 @@ jobs:
         id: env
         run: |
           ENV="${{ inputs.environment }}"
-          TAG="${{ inputs.image_tag || 'latest' }}"
+          TAG="${{ inputs.image_tag }}"
+          if [ -z "$TAG" ]; then
+            echo "::error::image_tag is required and must not be empty"
+            exit 1
+          fi
 
           echo "environment=${ENV}" >> "$GITHUB_OUTPUT"
           echo "image_tag=${TAG}" >> "$GITHUB_OUTPUT"

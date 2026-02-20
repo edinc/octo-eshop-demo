@@ -24,6 +24,24 @@ env:
   ACR_REGISTRY: ${{ secrets.ACR_LOGIN_SERVER }}
 
 jobs:
+  resolve-tag:
+    name: Resolve Image Tag
+    runs-on: ubuntu-latest
+    outputs:
+      image_tag: ${{ steps.tag.outputs.image_tag }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Generate image tag
+        id: tag
+        run: |
+          SHA_SHORT=$(git rev-parse --short HEAD)
+          BRANCH=${GITHUB_REF_NAME}
+          if [ "$BRANCH" == "main" ]; then
+            echo "image_tag=${SHA_SHORT}" >> "$GITHUB_OUTPUT"
+          else
+            echo "image_tag=${BRANCH}-${SHA_SHORT}" >> "$GITHUB_OUTPUT"
+          fi
+
   changes:
     name: Detect Changes
     runs-on: ubuntu-latest
@@ -88,9 +106,7 @@ jobs:
   build-push:
     name: Build ${{ matrix.service }}
     runs-on: ubuntu-latest
-    needs: changes
-    outputs:
-      image_tag: ${{ steps.tags.outputs.image_tag }}
+    needs: [resolve-tag, changes]
     if: needs.changes.outputs.any_changed == 'true'
     strategy:
       fail-fast: false
@@ -112,15 +128,13 @@ jobs:
       - name: Generate image tags
         id: tags
         run: |
-          SHA_SHORT=$(git rev-parse --short HEAD)
+          IMAGE_TAG="${{ needs.resolve-tag.outputs.image_tag }}"
           BRANCH=${GITHUB_REF_NAME}
 
           if [ "$BRANCH" == "main" ]; then
-            TAGS="${ACR_REGISTRY}/${{ matrix.service }}:latest,${ACR_REGISTRY}/${{ matrix.service }}:${SHA_SHORT}"
-            IMAGE_TAG="latest"
+            TAGS="${ACR_REGISTRY}/${{ matrix.service }}:latest,${ACR_REGISTRY}/${{ matrix.service }}:${IMAGE_TAG}"
           else
-            TAGS="${ACR_REGISTRY}/${{ matrix.service }}:${BRANCH}-${SHA_SHORT},${ACR_REGISTRY}/${{ matrix.service }}:${BRANCH}"
-            IMAGE_TAG="${BRANCH}-${SHA_SHORT}"
+            TAGS="${ACR_REGISTRY}/${{ matrix.service }}:${IMAGE_TAG},${ACR_REGISTRY}/${{ matrix.service }}:${BRANCH}"
           fi
 
           echo "tags=${TAGS}" >> "$GITHUB_OUTPUT"
@@ -158,29 +172,29 @@ jobs:
 
   deploy-dev:
     name: Deploy to Dev
-    needs: build-push
+    needs: [resolve-tag, build-push]
     uses: ./.github/workflows/deploy.yml
     with:
       environment: dev
-      image_tag: ${{ needs.build-push.outputs.image_tag || 'latest' }}
+      image_tag: ${{ needs.resolve-tag.outputs.image_tag }}
     secrets: inherit
 
   deploy-staging:
     name: Deploy to Staging
-    needs: [build-push, deploy-dev]
+    needs: [resolve-tag, build-push, deploy-dev]
     if: github.ref == 'refs/heads/main'
     uses: ./.github/workflows/deploy.yml
     with:
       environment: staging
-      image_tag: ${{ needs.build-push.outputs.image_tag || 'latest' }}
+      image_tag: ${{ needs.resolve-tag.outputs.image_tag }}
     secrets: inherit
 
   deploy-production:
     name: Deploy to Production
-    needs: [build-push, deploy-staging]
+    needs: [resolve-tag, build-push, deploy-staging]
     if: github.ref == 'refs/heads/main'
     uses: ./.github/workflows/deploy.yml
     with:
       environment: production
-      image_tag: ${{ needs.build-push.outputs.image_tag || 'latest' }}
+      image_tag: ${{ needs.resolve-tag.outputs.image_tag }}
     secrets: inherit
