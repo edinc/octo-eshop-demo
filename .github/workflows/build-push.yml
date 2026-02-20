@@ -132,11 +132,12 @@ jobs:
         run: |
           IMAGE_TAG="${{ needs.resolve-tag.outputs.image_tag }}"
           BRANCH=${GITHUB_REF_NAME}
+          BRANCH_SAFE=$(echo "$BRANCH" | tr '/' '-')
 
           if [ "$BRANCH" == "main" ]; then
             TAGS="${ACR_REGISTRY}/${{ matrix.service }}:latest,${ACR_REGISTRY}/${{ matrix.service }}:${IMAGE_TAG}"
           else
-            TAGS="${ACR_REGISTRY}/${{ matrix.service }}:${IMAGE_TAG},${ACR_REGISTRY}/${{ matrix.service }}:${BRANCH}"
+            TAGS="${ACR_REGISTRY}/${{ matrix.service }}:${IMAGE_TAG},${ACR_REGISTRY}/${{ matrix.service }}:${BRANCH_SAFE}"
           fi
 
           echo "tags=${TAGS}" >> "$GITHUB_OUTPUT"
