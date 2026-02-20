@@ -55,3 +55,73 @@ jobs:
       - name: Terraform Apply
         if: inputs.action == 'apply'
         run: terraform apply -auto-approve tfplan
+
+      - name: Sync secrets to GitHub
+        if: inputs.action == 'apply'
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+        run: |
+          ENV="${{ inputs.environment }}"
+
+          # Skip if GH_TOKEN is not set
+          if [ -z "$GH_TOKEN" ]; then
+            echo "⚠️  GH_TOKEN not set — skipping GitHub secrets sync."
+            echo "    Set a GitHub PAT with 'repo' scope as GH_TOKEN secret to enable."
+            exit 0
+          fi
+
+          REPO="${{ github.repository }}"
+
+          # Read Terraform outputs
+          RG_NAME=$(terraform output -raw resource_group_name)
+          AKS_NAME=$(terraform output -raw aks_cluster_name)
+          ACR_SERVER=$(terraform output -raw acr_login_server)
+          KV_NAME=$(terraform output -raw key_vault_name)
+
+          # Set infra secrets per environment
+          gh secret set AKS_RESOURCE_GROUP --body "$RG_NAME" --env "$ENV" --repo "$REPO" || {
+            echo "::warning::Failed to set AKS_RESOURCE_GROUP. Check GH_TOKEN permissions (needs repo + environment scope)."
+          }
+          gh secret set AKS_CLUSTER_NAME --body "$AKS_NAME" --env "$ENV" --repo "$REPO" || {
+            echo "::warning::Failed to set AKS_CLUSTER_NAME."
+          }
+          # Only set repo-level ACR secrets from the dev environment to avoid
+          # staging/production overwrites (all environments share the dev ACR for builds)
+          if [ "$ENV" == "dev" ]; then
+            gh secret set ACR_LOGIN_SERVER --body "$ACR_SERVER" --repo "$REPO" || {
+              echo "::warning::Failed to set ACR_LOGIN_SERVER."
+            }
+
+            # Get ACR credentials
+            ACR_NAME=$(terraform output -raw acr_name)
+            ACR_CREDS=$(az acr credential show --name "$ACR_NAME" 2>/dev/null || true)
+            if [ -n "$ACR_CREDS" ]; then
+              ACR_USER=$(echo "$ACR_CREDS" | jq -r '.username')
+              ACR_PASS=$(echo "$ACR_CREDS" | jq -r '.passwords[0].value')
+              gh secret set ACR_USERNAME --body "$ACR_USER" --repo "$REPO"
+              gh secret set ACR_PASSWORD --body "$ACR_PASS" --repo "$REPO"
+            fi
+          fi
+
+          # Read secrets from Key Vault and set as GitHub environment secrets
+          set_kv_secret() {
+            local kv_key="$1" gh_key="$2"
+            local val
+            val=$(az keyvault secret show --vault-name "$KV_NAME" --name "$kv_key" --query value -o tsv 2>/dev/null || true)
+            if [ -n "$val" ]; then
+              gh secret set "$gh_key" --body "$val" --env "$ENV" --repo "$REPO"
+              echo "  ✅ $gh_key"
+            else
+              echo "  ⚠️  $kv_key not found in Key Vault"
+            fi
+          }
+
+          echo "Syncing Key Vault secrets → GitHub ($ENV)..."
+          set_kv_secret "user-db-connection-string" "USER_DATABASE_URL"
+          set_kv_secret "product-db-connection-string" "PRODUCT_DATABASE_URL"
+          set_kv_secret "order-db-connection-string" "ORDER_DATABASE_URL"
+          set_kv_secret "redis-connection-string" "REDIS_URL"
+          set_kv_secret "servicebus-connection-string" "SERVICEBUS_CONNECTION_STRING"
+          set_kv_secret "jwt-secret" "JWT_SECRET"
+
+          echo "✅ Secrets sync complete for $ENV"

@@ -66,3 +66,13 @@ jobs:
       environment: ${{ inputs.environment }}
       action: ${{ inputs.action }}
     secrets: inherit
+
+  # After apply: configure cluster add-ons
+  cluster-setup:
+    name: Cluster Setup
+    needs: dispatch
+    if: github.event_name == 'workflow_dispatch' && inputs.action == 'apply'
+    uses: ./.github/workflows/cluster-setup.yml
+    with:
+      environment: ${{ inputs.environment }}
+    secrets: inherit

@@ -31,6 +31,18 @@ A bicycle e-commerce platform built with microservices architecture, deployed on
 
 ## Quick Start
 
+### From scratch (new Azure environment)
+
+```bash
+# One-time bootstrap: creates Terraform state backend + Azure SP + GitHub secrets
+./scripts/bootstrap-backend.sh
+
+# Then trigger infrastructure provisioning (includes cluster add-ons setup)
+gh workflow run infrastructure.yml -f environment=dev -f action=apply
+```
+
+### Existing environment
+
 ```bash
 # Install dependencies
 npm install
@@ -60,9 +72,10 @@ octo-eshop-demo/
 │   ├── types/              # @octo-eshop/types
 │   └── utils/              # @octo-eshop/utils
 ├── infrastructure/         # Terraform (Azure)
+├── kubernetes/             # K8s manifests & cluster setup
 ├── helm/                   # Helm charts (one per service)
 ├── docs/                   # Architecture & pipeline docs
-└── scripts/                # Utility scripts
+└── scripts/                # Bootstrap & utility scripts
 ```
 
 ## Documentation

@@ -1,2 +1,2 @@
-databaseSubnet: "10.0.2.0/24"
-redisSubnet: "10.0.3.0/24"
+databaseSubnet: "10.10.2.0/24"
+redisSubnet: "10.10.3.0/24"

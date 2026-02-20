@@ -1,0 +1,161 @@
+name: Cluster Setup
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        description: 'Environment to configure'
+        required: true
+        type: string
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  setup:
+    name: Setup Cluster (${{ inputs.environment }})
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Get AKS credentials
+        run: |
+          az aks get-credentials \
+            --resource-group ${{ secrets.AKS_RESOURCE_GROUP }} \
+            --name ${{ secrets.AKS_CLUSTER_NAME }} \
+            --overwrite-existing
+
+      - name: Setup Helm
+        uses: azure/setup-helm@v4
+
+      - name: Install ingress-nginx
+        run: |
+          helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+          helm repo update
+
+          helm upgrade --install ingress-nginx ingress-nginx/ingress-nginx \
+            --namespace ingress-nginx \
+            --create-namespace \
+            --set controller.replicaCount=2 \
+            --set controller.nodeSelector."kubernetes\.io/os"=linux \
+            --set defaultBackend.nodeSelector."kubernetes\.io/os"=linux \
+            --wait --timeout 5m
+
+      - name: Install external-secrets-operator
+        run: |
+          helm repo add external-secrets https://charts.external-secrets.io
+          helm repo update
+
+          helm upgrade --install external-secrets external-secrets/external-secrets \
+            --namespace external-secrets \
+            --create-namespace \
+            --set installCRDs=true \
+            --set webhook.port=9443 \
+            --wait --timeout 5m
+
+      - name: Setup workload identity for ESO
+        run: |
+          ENV="${{ inputs.environment }}"
+          RG="${{ secrets.AKS_RESOURCE_GROUP }}"
+          CLUSTER="${{ secrets.AKS_CLUSTER_NAME }}"
+
+          OIDC_ISSUER=$(az aks show --resource-group "$RG" --name "$CLUSTER" \
+            --query "oidcIssuerProfile.issuerUrl" -o tsv)
+
+          KV_NAME=$(az keyvault list --resource-group "$RG" \
+            --query "[0].name" -o tsv)
+
+          # Create managed identity for ESO if it doesn't exist
+          ESO_IDENTITY="eso-${ENV}-identity"
+          ESO_IDENTITY_EXISTS=$(az identity show \
+            --resource-group "$RG" --name "$ESO_IDENTITY" \
+            --query clientId -o tsv 2>/dev/null || true)
+
+          if [[ -z "$ESO_IDENTITY_EXISTS" ]]; then
+            az identity create --resource-group "$RG" --name "$ESO_IDENTITY" --output none
+          fi
+
+          ESO_CLIENT_ID=$(az identity show \
+            --resource-group "$RG" --name "$ESO_IDENTITY" \
+            --query clientId -o tsv)
+          ESO_PRINCIPAL_ID=$(az identity show \
+            --resource-group "$RG" --name "$ESO_IDENTITY" \
+            --query principalId -o tsv)
+
+          # Grant Key Vault Secrets User role
+          KV_ID=$(az keyvault show --name "$KV_NAME" --query id -o tsv)
+          az role assignment create \
+            --assignee-object-id "$ESO_PRINCIPAL_ID" \
+            --assignee-principal-type ServicePrincipal \
+            --role "Key Vault Secrets User" \
+            --scope "$KV_ID" \
+            --output none 2>/dev/null || true
+
+          # Create federated credential for ESO service account
+          FED_NAME="eso-${ENV}-federated"
+          FED_EXISTS=$(az identity federated-credential show \
+            --identity-name "$ESO_IDENTITY" --resource-group "$RG" \
+            --name "$FED_NAME" --query name -o tsv 2>/dev/null || true)
+
+          if [[ -z "$FED_EXISTS" ]]; then
+            az identity federated-credential create \
+              --identity-name "$ESO_IDENTITY" \
+              --resource-group "$RG" \
+              --name "$FED_NAME" \
+              --issuer "$OIDC_ISSUER" \
+              --subject "system:serviceaccount:external-secrets:external-secrets-sa" \
+              --audiences "api://AzureADTokenExchange" \
+              --output none
+          fi
+
+          # Create ESO service account with workload identity annotation
+          # This SA is referenced by ClusterSecretStore's serviceAccountRef.
+          # ESO controller impersonates this SA when fetching secrets from Key Vault.
+          sed "s|__CLIENT_ID__|${ESO_CLIENT_ID}|g" \
+            kubernetes/cluster-setup/eso-service-account.yaml \
+            | kubectl apply -f -
+
+          echo "eso_client_id=${ESO_CLIENT_ID}" >> "$GITHUB_OUTPUT"
+          echo "kv_name=${KV_NAME}" >> "$GITHUB_OUTPUT"
+        id: identity
+
+      - name: Create ClusterSecretStore
+        run: |
+          ENV="${{ inputs.environment }}"
+          RG="${{ secrets.AKS_RESOURCE_GROUP }}"
+          KV_NAME=$(az keyvault list --resource-group "$RG" --query "[0].name" -o tsv)
+          KV_URL=$(az keyvault show --name "$KV_NAME" --query "properties.vaultUri" -o tsv)
+          TENANT_ID=$(az account show --query tenantId -o tsv)
+
+          # Wait for ESO webhook to be ready before creating CRDs
+          echo "Waiting for ESO webhook..."
+          kubectl wait --for=condition=Available deployment/external-secrets-webhook \
+            -n external-secrets --timeout=120s
+          sleep 5
+
+          sed -e "s|__ENV__|${ENV}|g" \
+              -e "s|__VAULT_URL__|${KV_URL}|g" \
+              -e "s|__TENANT_ID__|${TENANT_ID}|g" \
+              kubernetes/cluster-setup/cluster-secret-store.yaml \
+            | kubectl apply -f -
+
+          echo "✅ ClusterSecretStore azure-keyvault-${ENV} created"
+
+      - name: Verify cluster setup
+        run: |
+          echo "=== ingress-nginx ==="
+          kubectl get pods -n ingress-nginx
+
+          echo "=== external-secrets ==="
+          kubectl get pods -n external-secrets
+
+          echo "=== ClusterSecretStore ==="
+          kubectl get clustersecretstore
