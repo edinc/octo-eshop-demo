@@ -1,5 +1,11 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import reducer, { addItem, updateItemQuantity, removeItem, clearCart, setLoading } from './cartSlice';
+import reducer, {
+  addItem,
+  updateItemQuantity,
+  removeItem,
+  clearCart,
+  setLoading,
+} from './cartSlice';
 import cartService from '@/services/cartService';
 import type { CartItem, CartState } from '@/types';
 
@@ -29,10 +35,7 @@ describe('cartSlice', () => {
 
   it('updates and removes items by product id', () => {
     const stateWithItem: CartState = { items: [cartItem], isLoading: false };
-    let state = reducer(
-      stateWithItem,
-      updateItemQuantity({ productId: 'p1', quantity: 5 })
-    );
+    let state = reducer(stateWithItem, updateItemQuantity({ productId: 'p1', quantity: 5 }));
     expect(state.items[0].quantity).toBe(5);
 
     state = reducer(state, removeItem('p1'));
