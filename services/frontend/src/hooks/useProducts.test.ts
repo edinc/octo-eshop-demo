@@ -55,16 +55,17 @@ describe('useProducts hooks', () => {
     useProduct('p1');
     let options = mockedUseQuery.mock.calls[0][0] as {
       enabled?: boolean;
-      queryFn: () => Promise<unknown>;
+      queryFn?: () => Promise<unknown>;
     };
     expect(options.enabled).toBe(true);
-    await options.queryFn();
+    await options.queryFn?.();
     expect(mockedProductService.getProduct).toHaveBeenCalledWith('p1');
 
     mockedUseQuery.mockClear();
     useProduct('');
     options = mockedUseQuery.mock.calls[0][0] as {
       enabled?: boolean;
+      queryFn?: () => Promise<unknown>;
     };
     expect(options.enabled).toBe(false);
   });

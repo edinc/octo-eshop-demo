@@ -38,24 +38,24 @@ describe('useOrders hooks', () => {
 
   it('configures orders and order queries', async () => {
     useOrders(2, 25);
-    let options = mockedUseQuery.mock.calls[0][0] as {
+    const listOptions = mockedUseQuery.mock.calls[0][0] as {
       queryKey: unknown[];
       queryFn: () => Promise<unknown>;
     };
-    expect(options.queryKey).toEqual(['orders', 2, 25]);
-    await options.queryFn();
+    expect(listOptions.queryKey).toEqual(['orders', 2, 25]);
+    await listOptions.queryFn();
     expect(mockedOrderService.getOrders).toHaveBeenCalledWith(2, 25);
 
     mockedUseQuery.mockClear();
     useOrder('o1');
-    options = mockedUseQuery.mock.calls[0][0] as {
+    const orderOptions = mockedUseQuery.mock.calls[0][0] as {
       queryKey: unknown[];
       enabled?: boolean;
       queryFn: () => Promise<unknown>;
     };
-    expect(options.queryKey).toEqual(['order', 'o1']);
-    expect(options.enabled).toBe(true);
-    await options.queryFn();
+    expect(orderOptions.queryKey).toEqual(['order', 'o1']);
+    expect(orderOptions.enabled).toBe(true);
+    await orderOptions.queryFn();
     expect(mockedOrderService.getOrder).toHaveBeenCalledWith('o1');
   });
 
@@ -63,21 +63,18 @@ describe('useOrders hooks', () => {
     const queryClient: QueryClientMock = { invalidateQueries: vi.fn() };
     mockedUseQueryClient.mockReturnValue(queryClient);
 
-    const mutation = useCreateOrder() as {
+    const mutation = useCreateOrder() as unknown as {
       mutationFn: (data: unknown) => Promise<unknown>;
       onSuccess: () => void;
     };
 
     await mutation.mutationFn({
       shippingAddress: {
-        firstName: 'Jane',
-        lastName: 'Doe',
         street: '123 Main',
         city: 'Seattle',
         state: 'WA',
         postalCode: '98101',
         country: 'US',
-        phone: '5551231234',
       },
       paymentMethod: 'card',
     });
@@ -92,7 +89,7 @@ describe('useOrders hooks', () => {
     const queryClient: QueryClientMock = { invalidateQueries: vi.fn() };
     mockedUseQueryClient.mockReturnValue(queryClient);
 
-    const mutation = useCancelOrder() as {
+    const mutation = useCancelOrder() as unknown as {
       mutationFn: (id: string) => Promise<unknown>;
       onSuccess: () => void;
     };

@@ -36,14 +36,11 @@ describe('orderService', () => {
   it('calls create and cancel order endpoints', async () => {
     await orderService.createOrder({
       shippingAddress: {
-        firstName: 'Jane',
-        lastName: 'Doe',
         street: '123 Main',
         city: 'Seattle',
         state: 'WA',
         postalCode: '98101',
         country: 'US',
-        phone: '5551231234',
       },
       paymentMethod: 'card',
       paymentDetails: { lastFour: '4242', cardholderName: 'Jane Doe' },
