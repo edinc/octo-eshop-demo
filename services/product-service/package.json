@@ -8,7 +8,7 @@
     "dev": "tsx watch src/index.ts",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:ci": "vitest run --reporter=verbose --reporter=json --outputFile.json=../../.artifacts/tests/product-service/results.json --coverage --coverage.provider=v8 --coverage.reporter=json --coverage.reportsDirectory=../../.artifacts/tests/product-service/coverage",
+    "test:ci": "vitest run --reporter=verbose --reporter=json --outputFile.json=../../.artifacts/tests/product-service/results.json --coverage --coverage.provider=v8 --coverage.reporter=json --coverage.reporter=json-summary --coverage.reportsDirectory=../../.artifacts/tests/product-service/coverage",
     "lint": "eslint src/",
     "migrate": "prisma migrate dev",
     "migrate:deploy": "prisma migrate deploy",

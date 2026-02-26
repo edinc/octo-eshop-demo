@@ -9,7 +9,7 @@
     "lint": "eslint src/",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:ci": "vitest run --reporter=verbose --reporter=json --outputFile.json=../../.artifacts/tests/frontend/results.json --coverage --coverage.provider=v8 --coverage.reporter=json --coverage.reportsDirectory=../../.artifacts/tests/frontend/coverage"
+    "test:ci": "vitest run --reporter=verbose --reporter=json --outputFile.json=../../.artifacts/tests/frontend/results.json --coverage --coverage.provider=v8 --coverage.reporter=json --coverage.reporter=json-summary --coverage.reportsDirectory=../../.artifacts/tests/frontend/coverage"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.3.3",
