@@ -8,6 +8,7 @@
     "dev": "ts-node-dev --respawn src/index.ts",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:ci": "vitest run --reporter=verbose --reporter=json --outputFile.json=../../.artifacts/tests/order-service/results.json --coverage --coverage.provider=v8 --coverage.reporter=json --coverage.reporter=json-summary --coverage.reportsDirectory=../../.artifacts/tests/order-service/coverage",
     "lint": "eslint src --ext .ts"
   },
   "dependencies": {
@@ -24,6 +25,7 @@
     "@types/express": "^5.0.0",
     "@types/jsonwebtoken": "^9.0.7",
     "@types/node": "^22.9.0",
+    "@vitest/coverage-v8": "^2.1.4",
     "prisma": "^5.22.0",
     "ts-node-dev": "^2.0.0",
     "typescript": "^5.6.3",

@@ -129,14 +129,70 @@ jobs:
           npm run build --workspace=services/order-service
           npm run build --workspace=services/payment-service
 
-      - name: Run tests
-        run: npm test
+      - name: Run tests with coverage
+        run: npm run test:ci --workspaces --if-present
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/userdb
           USER_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/userdb
           PRODUCT_DATABASE_URL: postgresql://postgres:postgres@localhost:5433/productdb
           ORDER_DATABASE_URL: postgresql://postgres:postgres@localhost:5434/orderdb
           REDIS_URL: redis://localhost:6379
+
+      - name: Upload test artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: .artifacts/
+          include-hidden-files: true
+          if-no-files-found: warn
+          retention-days: 7
+
+  test-summary:
+    name: Test Summary
+    runs-on: ubuntu-latest
+    needs: build-and-test
+    if: always() && github.event_name == 'pull_request'
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Download test artifacts
+        # continue-on-error so the summary job still runs even when build-and-test
+        # failed before the artifact upload (e.g. compile error before tests ran).
+        # The aggregation script handles missing reports with a fallback message.
+        uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          name: test-results
+          path: .artifacts/
+
+      - name: Aggregate test results
+        run: node scripts/aggregate-test-results.mjs
+
+      - name: Find existing PR comment
+        uses: peter-evans/find-comment@v3
+        id: find-comment
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          comment-author: github-actions[bot]
+          body-includes: '<!-- ci-test-summary -->'
+
+      - name: Post or update PR comment
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          comment-id: ${{ steps.find-comment.outputs.comment-id }}
+          issue-number: ${{ github.event.pull_request.number }}
+          body-path: .artifacts/test-summary.md
+          edit-mode: replace
 
   security:
     name: Security Scan

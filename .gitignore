@@ -44,3 +44,6 @@ tfplan
 # Misc
 *.tmp
 *.temp
+
+# CI test artifacts
+.artifacts/

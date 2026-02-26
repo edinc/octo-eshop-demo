@@ -8,6 +8,7 @@
     "dev": "tsx watch src/index.ts",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:ci": "vitest run --reporter=verbose --reporter=json --outputFile.json=../../.artifacts/tests/cart-service/results.json --coverage --coverage.provider=v8 --coverage.reporter=json --coverage.reporter=json-summary --coverage.reportsDirectory=../../.artifacts/tests/cart-service/coverage",
     "lint": "eslint src/"
   },
   "dependencies": {
@@ -29,6 +30,7 @@
     "@types/express": "^4.17.21",
     "@types/jsonwebtoken": "^9.0.5",
     "@types/morgan": "^1.9.9",
+    "@vitest/coverage-v8": "^1.6.1",
     "tsx": "^4.7.0",
     "vitest": "^1.2.0"
   }
