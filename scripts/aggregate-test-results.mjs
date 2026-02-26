@@ -81,13 +81,14 @@ for (const workspace of WORKSPACES) {
   const passed = results.numPassedTests ?? 0;
   const failed = results.numFailedTests ?? 0;
   // Pending, skipped, and todo tests are all non-executed tests; group under "Skipped" for display.
-  const skipped = (results.numPendingTests ?? 0) + (results.numSkippedTests ?? 0) + (results.numTodoTests ?? 0);
+  const skipped =
+    (results.numPendingTests ?? 0) + (results.numSkippedTests ?? 0) + (results.numTodoTests ?? 0);
 
   // Compute duration from startTime to max testResult end (or use reported duration)
   let durationMs = 0;
   if (Array.isArray(results.testResults) && results.testResults.length > 0) {
     const start = results.startTime ?? results.testResults[0]?.startTime ?? 0;
-    const end = Math.max(...results.testResults.map((r) => (r.endTime ?? r.startTime ?? 0)));
+    const end = Math.max(...results.testResults.map(r => r.endTime ?? r.startTime ?? 0));
     durationMs = end > start ? end - start : 0;
   }
 
@@ -123,7 +124,7 @@ const statusEmoji = allPassed ? '✅' : '❌';
 const statusText = allPassed ? 'All tests passed' : 'Some tests failed';
 
 const tableRows = rows
-  .map((r) => {
+  .map(r => {
     const failedCell = r.failed !== '–' && r.failed > 0 ? `**${r.failed}**` : r.failed;
     const missingNote = r.missing ? ' ⚠️ report missing' : '';
     return `| ${r.workspace}${missingNote} | ${r.tests} | ${r.passed} | ${failedCell} | ${r.skipped} | ${r.duration} | ${r.coverage} |`;
