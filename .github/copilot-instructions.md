@@ -30,6 +30,7 @@ octo-eshop-demo/
 ├── shared/                 # Shared packages (npm workspaces)
 │   ├── types/              # @octo-eshop/types - shared TypeScript types
 │   └── utils/              # @octo-eshop/utils - shared utilities
+├── .devcontainer/          # GitHub Codespaces / devcontainer config
 ├── infrastructure/         # Terraform configs
 ├── kubernetes/             # K8s manifests
 ├── scripts/                # Utility scripts
@@ -75,7 +76,7 @@ npm test --workspace=services/user-service -- src/services/userService.test.ts
 # Lint all code
 npm run lint
 
-# Start local development (all services)
+# Start local development (all services via Docker Compose)
 docker-compose up -d
 
 # Run database migrations
@@ -84,6 +85,10 @@ docker-compose exec user-service npx prisma migrate deploy
 # Seed product data
 docker-compose exec product-service npx prisma db seed
 ```
+
+## Codespaces / Devcontainer
+
+The `.devcontainer/` provides a ready-to-code environment with all tools and extensions pre-installed (Node 20, Docker, GitHub CLI, kubectl, Helm, Terraform, Azure CLI). Databases are not auto-started — use `docker-compose up -d` when needed.
 
 ## Terraform Commands
 
