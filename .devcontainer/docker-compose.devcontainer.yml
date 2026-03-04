@@ -57,7 +57,7 @@ services:
   devcontainer:
     image: mcr.microsoft.com/devcontainers/typescript-node:20
     volumes:
-      - ..:/workspaces/${localWorkspaceFolderBasename}:cached
+      - ..:/workspaces/octo-eshop-demo:cached
     command: sleep infinity
     environment:
       NODE_ENV: development
