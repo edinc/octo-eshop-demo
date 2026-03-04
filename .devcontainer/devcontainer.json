@@ -1,13 +1,7 @@
 {
   "name": "Octo E-Shop",
-  "dockerComposeFile": "docker-compose.devcontainer.yml",
-  "service": "devcontainer",
-  "workspaceFolder": "/workspaces/octo-eshop-demo",
+  "image": "mcr.microsoft.com/devcontainers/typescript-node:20",
   "features": {
-    "ghcr.io/devcontainers/features/node:1": {
-      "version": "20",
-      "installYarnUsingApt": false
-    },
     "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {
       "moby": false
     },
@@ -49,34 +43,19 @@
         "prisma.showPrismaDataPlatformNotification": false
       },
       "extensions": [
-        // TypeScript & JavaScript
         "dbaeumer.vscode-eslint",
         "esbenp.prettier-vscode",
-
-        // React & Frontend
         "dsznajder.es7-react-js-snippets",
         "bradlc.vscode-tailwindcss",
-
-        // Database & ORM
         "Prisma.prisma",
-
-        // Docker & Kubernetes
         "ms-azuretools.vscode-docker",
         "ms-kubernetes-tools.vscode-kubernetes-tools",
-
-        // Terraform / Infrastructure
         "hashicorp.terraform",
-
-        // GitHub
         "GitHub.copilot",
         "GitHub.copilot-chat",
         "GitHub.vscode-github-actions",
         "GitHub.vscode-pull-request-github",
-
-        // API & Testing
         "humao.rest-client",
-
-        // Utilities
         "editorconfig.editorconfig",
         "mikestead.dotenv",
         "redhat.vscode-yaml",
@@ -94,7 +73,7 @@
     "3005": { "label": "Payment Service", "onAutoForward": "silent" },
     "8080": { "label": "API Gateway (Kong)", "onAutoForward": "notify" }
   },
-  "postCreateCommand": "bash .devcontainer/setup.sh",
-  "postStartCommand": "echo '✅ Octo E-Shop devcontainer ready. Run services from the terminal.'",
+  "postCreateCommand": "npm install && npx husky",
+  "postStartCommand": "echo '✅ Octo E-Shop devcontainer ready. Start databases with: docker-compose up -d'",
   "remoteUser": "node"
 }

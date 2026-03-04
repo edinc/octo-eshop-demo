@@ -35,16 +35,14 @@ A bicycle e-commerce platform built with microservices architecture, deployed on
 
 [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/edinc/octo-eshop-demo)
 
-The devcontainer automatically sets up PostgreSQL, Redis, all dev tools, and per-service `.env` files. Once the container is ready:
+The devcontainer provides a ready-to-code environment with all tools and extensions pre-installed. Once the container is ready:
 
 ```bash
-# Run database migrations
-npx --workspace=services/user-service prisma migrate deploy
-npx --workspace=services/product-service prisma migrate deploy
-npx --workspace=services/order-service prisma migrate deploy
+# Start databases and all services
+docker-compose up -d
 
-# Start a service
-npm run dev --workspace=services/user-service
+# Run tests
+npm test
 ```
 
 ### Local development with Docker Compose
@@ -104,4 +102,4 @@ octo-eshop-demo/
 
 ## License
 
-Private
+[MIT](LICENSE)
