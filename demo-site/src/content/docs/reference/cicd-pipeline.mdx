@@ -1,0 +1,122 @@
+---
+draft: false
+title: CI/CD Pipeline
+description: Continuous integration, delivery, and infrastructure workflows for the Octo E-Shop.
+---
+
+import { Aside } from "@astrojs/starlight/components";
+
+## Overview
+
+The Octo E-Shop uses **GitHub Actions** for CI/CD with a progressive deployment model across three environments. The platform consists of 6 microservices deployed to **Azure Kubernetes Service (AKS)** via **Helm charts**, with infrastructure provisioned by **Terraform**.
+
+```
+Code Push → CI Validation → Build & Push Images → Deploy Dev → Deploy Staging → Deploy Production
+                                                      ↑              ↑               ↑
+                                                   automatic    approval gate    approval gate
+```
+
+## Workflow Inventory
+
+| Workflow | File | Trigger | Purpose |
+|----------|------|---------|---------|
+| **CI Pipeline** | `ci.yml` | PR, push to main/develop | Lint, test, build validation |
+| **Build & Push** | `build-push.yml` | Push to main/develop | Build Docker images, push to ACR |
+| **Deploy** | `deploy.yml` | Called by Build & Push | Helm deploy to AKS environments |
+| **Infrastructure** | `infrastructure.yml` | Manual, Terraform changes | Terraform plan/apply |
+| **Terraform Deploy** | `terraform-deploy.yml` | Called by Infrastructure | Per-environment Terraform execution |
+| **Cluster Setup** | `cluster-setup.yml` | After Terraform apply | Install ESO, ingress-nginx, secrets |
+| **Rollback** | `rollback.yml` | Manual | Helm rollback to previous release |
+
+## Pipeline Flows
+
+### 1. CI Pipeline (`ci.yml`)
+
+Runs on every PR and push to protected branches:
+
+1. **Lint & Format** — ESLint + Prettier check
+2. **Unit Tests** — Per-service test execution with coverage
+3. **Build Validation** — TypeScript compilation + Docker build (no push)
+4. **Security Scan** — Trivy vulnerability scanning on built images
+
+### 2. Build & Deploy Pipeline (`build-push.yml`)
+
+Triggered on pushes to `main` or `develop`:
+
+1. **Resolve Tag** — Generate image tag from git short SHA
+2. **Build Matrix** — Build all 6 service Docker images in parallel
+3. **Push to ACR** — Tag and push images to Azure Container Registry
+4. **Deploy Dev** — Automatic Helm deploy to dev namespace
+5. **Deploy Staging** — Requires manual approval
+6. **Deploy Production** — Requires manual approval
+
+### 3. Infrastructure Pipeline
+
+Manual workflow with environment selection:
+
+1. **Terraform Init** — Initialize with Azure Storage backend
+2. **Terraform Plan** — Generate and display plan
+3. **Terraform Apply** — Apply changes (requires explicit action parameter)
+4. **Cluster Setup** — Post-apply: install cluster add-ons
+
+### 4. Rollback Pipeline
+
+Emergency rollback via Helm:
+
+1. Select environment and service
+2. Helm rollback to previous release
+3. Verify pod health
+
+## Environment Strategy
+
+| Environment | Branch | Deployment | Approval |
+|------------|--------|------------|----------|
+| **Dev** | main, develop | Automatic | None |
+| **Staging** | main | Manual trigger | Required |
+| **Production** | main | Manual trigger | Required |
+
+## Secrets Management
+
+Secrets flow through three layers:
+
+1. **Azure Key Vault** — Source of truth for all secrets
+2. **GitHub Environment Secrets** — Synced by Terraform for CI/CD access
+3. **Kubernetes Secrets** — Injected at deploy time via `kubectl` or External Secrets Operator
+
+<Aside type="caution">
+  ACR secrets exist at repo level only (not per-environment) since all
+  environments share one ACR for builds.
+</Aside>
+
+## Deployment Details
+
+### Image Tagging
+
+- Images tagged with git short SHA (e.g., `d802d86`)
+- Branch names sanitized (`feature/xyz` → `feature-xyz`) for Docker tag compatibility
+- Tag resolved in a dedicated job before the build matrix
+
+### Helm Charts
+
+Each service has its own Helm chart under `helm/charts/`:
+
+```bash
+# Deploy a single service
+helm upgrade --install user-service ./helm/charts/user-service \
+  --namespace octo-eshop-dev \
+  -f ./helm/charts/user-service/values-dev.yaml
+
+# Deploy all services
+cd helm && helmfile -e dev sync
+```
+
+### Health Checks
+
+Kubernetes probes verify service health during rolling updates:
+
+- **Liveness** — `/health` endpoint
+- **Readiness** — `/ready` endpoint (checks database connectivity)
+
+<Aside>
+  For infrastructure details, see the [Architecture](/octo-eshop-demo/reference/architecture/) reference.
+</Aside>

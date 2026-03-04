@@ -95,10 +95,11 @@ octo-eshop-demo/
 
 ## Documentation
 
-| Document                                         | Description                                             |
-| ------------------------------------------------ | ------------------------------------------------------- |
-| [Azure Architecture](docs/azure-architecture.md) | Infrastructure design, Azure services, network topology |
-| [CI/CD Pipeline](docs/cicd-pipeline.md)          | Workflows, deployment strategy, operational runbook     |
+| Document                                                 | Description                                             |
+| -------------------------------------------------------- | ------------------------------------------------------- |
+| [📖 Demo Site](https://edinc.github.io/octo-eshop-demo/) | Interactive Copilot demo guides and presenter resources |
+| [Azure Architecture](docs/azure-architecture.md)         | Infrastructure design, Azure services, network topology |
+| [CI/CD Pipeline](docs/cicd-pipeline.md)                  | Workflows, deployment strategy, operational runbook     |
 
 ## License
 

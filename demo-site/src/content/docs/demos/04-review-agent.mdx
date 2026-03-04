@@ -1,0 +1,86 @@
+---
+draft: false
+title: Review Agent
+description: Automated code review for correctness, security, and maintainability using Copilot.
+---
+
+import { Aside } from "@astrojs/starlight/components";
+
+## What This Demonstrates
+
+The **Copilot Review Agent** reviews pull requests for correctness, security vulnerabilities, and maintainability — prioritizing critical issues and suggesting concrete fixes.
+
+## Prerequisites
+
+- A pull request open on the repository
+- GitHub web UI or VS Code with the PR checked out
+
+## Prompts
+
+### Prompt A — Full Review
+
+```text
+Review this PR for correctness, security, and maintainability. Prioritize
+critical issues first, then medium/low findings. Suggest concrete patch-level
+fixes.
+```
+
+<Aside type="tip" title="Why this works">
+  Copilot triages findings by severity and provides actionable fixes — not just
+  descriptions of problems. Reviewers get a prioritized list they can act on
+  immediately.
+</Aside>
+
+**What to look for:**
+
+- Severity-based ordering (critical → medium → low)
+- Concrete code suggestions (not just "consider fixing this")
+- Security findings (injection, auth bypass, secret exposure)
+
+---
+
+### Prompt B — Targeted Review
+
+```text
+Focus this review on API contract consistency (`success/data/error/meta` shape),
+error handling, and TypeScript strictness across touched files.
+```
+
+<Aside type="tip" title="Why this works">
+  Scoping the review to specific concerns yields deeper analysis. Copilot
+  checks every response object against the project's standard API format and
+  flags deviations.
+</Aside>
+
+**What to look for:**
+
+- API response shape validation against the project standard
+- Missing error handling (unhandled promise rejections, missing try/catch)
+- TypeScript `any` usage or missing type annotations
+
+---
+
+### Prompt C — Infrastructure Review
+
+```text
+Review Terraform and Kubernetes changes for least-privilege, secret handling,
+and safe defaults. Flag anything risky for production.
+```
+
+<Aside type="tip" title="Why this works">
+  Infrastructure reviews need domain expertise. Copilot checks IAM roles,
+  network policies, secret references, and resource sizing against production
+  best practices.
+</Aside>
+
+**What to look for:**
+
+- Overly permissive IAM roles or NSG rules
+- Hardcoded secrets or missing Key Vault references
+- Missing resource limits or unsafe defaults
+
+## Follow-Up Prompts
+
+- _"Summarize the 3 most important changes I should make before merging."_
+- _"Generate a commit that addresses the critical findings."_
+- _"Compare this review with what CodeQL would catch."_

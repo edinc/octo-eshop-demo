@@ -1,0 +1,113 @@
+---
+draft: false
+title: Presenter Tips
+description: Narration tips, pacing guidance, and recovery strategies for demos.
+---
+
+import { Aside } from "@astrojs/starlight/components";
+
+## General Principles
+
+### Narrate Before Running
+
+Always explain what you're about to do before executing a prompt:
+
+1. **Intent** — _"I'm going to ask Copilot to..."_
+2. **AI Action** — Run the prompt, let the audience watch
+3. **Validation** — _"Notice how it picked up on..."_
+
+This structure helps the audience follow along even if the output is dense.
+
+### Keep Diffs Small and Visible
+
+- Prefer one backend service (`order-service` or `payment-service`) for consistency
+- Avoid prompts that touch many files simultaneously
+- Use VS Code's diff view to highlight changes
+
+### Manage Expectations
+
+- _"AI output varies each run — the structure will be consistent, but details may differ."_
+- _"We always review AI-generated code before merging."_
+
+---
+
+## Pacing
+
+| Audience          | Suggested Total Time | Focus Areas                                    |
+| ----------------- | -------------------- | ---------------------------------------------- |
+| Executives        | 10 min               | Plan Agent, Review Agent, Security Overview    |
+| Engineering leads | 20 min               | Full end-to-end sequence                       |
+| Developers        | 30+ min              | Full sequence with live coding follow-ups      |
+
+### Timing Tips
+
+- Allow 10–15 seconds for Copilot to generate responses
+- Don't rush to fill silence while Copilot is working — narrate what's happening
+- If a response is still generating, preview what to expect
+
+---
+
+## Demo Environment Setup
+
+<Aside type="tip" title="Pre-demo checklist">
+  - [ ] Codespace is running and services are up (`docker-compose up -d`)
+  - [ ] VS Code has Copilot Chat open in sidebar
+  - [ ] Terminal is open and split-screened (for CLI demos)
+  - [ ] GitHub web UI is open to the repo (for Code Quality demos)
+  - [ ] Font size is large enough for the audience (16pt+ in VS Code)
+  - [ ] Any PR for review demos is already created
+</Aside>
+
+---
+
+## Recovery Strategies
+
+### Copilot Gives a Broad or Off-Topic Response
+
+> Follow up with: _"Make this minimal and repo-specific."_
+
+This grounds Copilot back to the project context.
+
+### Response Takes Too Long
+
+- Switch to a pre-prepared example while waiting
+- Narrate: _"While this generates, let me show you what the typical output looks like..."_
+
+### Code Doesn't Compile or Tests Fail
+
+- Don't panic — this is a teaching moment
+- Narrate: _"This is exactly why we review AI-generated code. Let's see what needs adjusting."_
+- Fix one issue live to show the iterative workflow
+
+### Agent Doesn't Respond
+
+- Check that the agent name is spelled correctly (e.g., `@bdd-specialist`)
+- Try refreshing the Copilot Chat panel
+- Have a backup screenshot of typical output
+
+---
+
+## Storytelling Arc
+
+For maximum impact, structure the demo as a story:
+
+1. **Setup** — _"We have a bicycle e-commerce platform with 6 microservices..."_
+2. **Challenge** — _"The PM wants a wishlist feature. Let's see how Copilot helps across the entire SDLC."_
+3. **Journey** — Walk through Plan → Code → Review → Test → Deploy → Secure
+4. **Resolution** — _"In 20 minutes, we went from idea to implementation plan, working code, tests, CI pipeline, and security validation — all with AI assistance."_
+
+---
+
+## Common Questions & Answers
+
+**Q: Does Copilot replace developers?**
+> _"No — it's a force multiplier. Developers still make design decisions, review output, and own quality. Copilot handles the repetitive parts so developers focus on what matters."_
+
+**Q: How does it know about our codebase?**
+> _"Copilot reads the repository context — file structure, imports, naming conventions, configuration files — and uses that to generate contextually relevant code."_
+
+**Q: Is the generated code secure?**
+> _"AI-generated code should go through the same review process as human-written code. That's why we showed the Review Agent and CodeQL — they catch issues regardless of who wrote the code."_
+
+**Q: What about data privacy?**
+> _"Copilot processes code in context but doesn't store or train on your private repository code. Check GitHub's Copilot trust documentation for the latest details."_

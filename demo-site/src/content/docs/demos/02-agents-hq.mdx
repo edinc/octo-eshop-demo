@@ -1,0 +1,86 @@
+---
+draft: false
+title: Agents HQ
+description: Multi-agent orchestration, PR automation, and policy alignment in the GitHub web experience.
+---
+
+import { Aside } from "@astrojs/starlight/components";
+
+## What This Demonstrates
+
+**GitHub Agents HQ** enables configuring specialized agents that run automatically on PRs and repository events — enforcing quality, security, and consistency at scale.
+
+## Prerequisites
+
+- GitHub web UI (Agents HQ context)
+- Repository with existing PR history for reference
+
+## Prompts
+
+### Prompt A — PR Automation
+
+```text
+For this repo, propose 3 specialized agents I should configure in Agents HQ:
+one for Terraform/Azure, one for backend API quality, one for frontend UX
+consistency. For each, define scope, trigger conditions, and expected outputs.
+```
+
+<Aside type="tip" title="Why this works">
+  Copilot understands the repo structure — infrastructure in `infrastructure/`,
+  backend services in `services/*-service/`, and frontend in `services/frontend/`
+  — and tailors agents to each domain.
+</Aside>
+
+**What to look for:**
+
+- Agent scopes matching the directory structure
+- Trigger conditions (file path patterns, PR labels)
+- Expected outputs (comments, status checks, suggestions)
+
+---
+
+### Prompt B — Multi-Agent Orchestration
+
+```text
+Simulate an Agents HQ workflow for a PR that touches `infrastructure/terraform`
+and `services/order-service`. Show which agents should run, in what order, and
+what each should validate.
+```
+
+<Aside type="tip" title="Why this works">
+  Cross-domain PRs need multiple agents running in a coordinated sequence.
+  Copilot maps the file changes to appropriate agents and determines execution
+  order.
+</Aside>
+
+**What to look for:**
+
+- Agent ordering (infra validation before service checks)
+- Each agent's specific validation scope
+- Conflict resolution between agent outputs
+
+---
+
+### Prompt C — Policy Alignment
+
+```text
+Draft branch protection + agent policy recommendations for this repo so that
+infra changes, security checks, and service contract changes are all enforced
+before merge.
+```
+
+<Aside type="tip" title="Why this works">
+  Combines GitHub branch protection rules with Agents HQ policies for a
+  comprehensive governance model that prevents unsafe merges.
+</Aside>
+
+**What to look for:**
+
+- Required status checks tied to agent results
+- Path-based rules (e.g., `infrastructure/**` requires infra agent approval)
+- Escalation for security-sensitive changes
+
+## Follow-Up Prompts
+
+- _"Create a CODEOWNERS file that aligns with these agent policies."_
+- _"What metrics should I track to measure agent effectiveness over time?"_

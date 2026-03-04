@@ -1,0 +1,84 @@
+---
+draft: false
+title: Copilot CLI
+description: Chat-driven development from the terminal using GitHub Copilot CLI.
+---
+
+import { Aside } from "@astrojs/starlight/components";
+
+## What This Demonstrates
+
+**GitHub Copilot CLI** brings AI assistance directly into the terminal — answering questions about the codebase, generating commands, and proposing changes without leaving the command line.
+
+## Prerequisites
+
+- Terminal open in the repository root
+- [GitHub Copilot CLI](https://docs.github.com/en/copilot/using-github-copilot/using-github-copilot-in-the-command-line) installed and authenticated
+
+## Prompts
+
+### Prompt A — Repository Tour
+
+```text
+Explain this monorepo structure and list the top 5 places I should inspect
+before implementing a new backend service.
+```
+
+<Aside type="tip" title="Why this works">
+  Copilot CLI scans the directory tree, package.json workspaces, and
+  configuration files to generate a prioritized exploration guide — perfect
+  for onboarding or pre-implementation research.
+</Aside>
+
+**What to look for:**
+
+- Accurate description of the monorepo structure
+- Key files identified (tsconfig.base.json, shared types, Docker configs)
+- Actionable guidance (not just a file listing)
+
+---
+
+### Prompt B — Safe Automation
+
+```text
+Generate commands to run lint + unit tests only for `services/product-service`,
+then explain likely failure categories and how to triage quickly.
+```
+
+<Aside type="tip" title="Why this works">
+  Demonstrates Copilot CLI's ability to generate precise npm workspace commands
+  and anticipate common failure modes — saving time on debugging.
+</Aside>
+
+**What to look for:**
+
+- Correct `--workspace` syntax for npm
+- Failure categories (type errors, missing mocks, database connection)
+- Triage steps for each category
+
+---
+
+### Prompt C — Change Proposal
+
+```text
+Propose and apply a minimal change that improves developer experience in this
+repo (for example scripts, docs, or local workflow). Show the diff and
+rationale.
+```
+
+<Aside type="tip" title="Why this works">
+  Shows Copilot CLI's ability to not just suggest changes but actually apply
+  them — creating a real diff that can be reviewed and committed.
+</Aside>
+
+**What to look for:**
+
+- A practical, non-breaking improvement
+- Clear rationale for the change
+- Actual file modifications (not just suggestions)
+
+## Follow-Up Prompts
+
+- _"Run the tests and explain any failures."_
+- _"What would you change to make this repo easier for a new contributor?"_
+- _"Generate a git commit message for the changes you just made."_
