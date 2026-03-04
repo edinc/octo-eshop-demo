@@ -1,0 +1,98 @@
+{
+  "name": "Octo E-Shop",
+  "dockerComposeFile": "docker-compose.devcontainer.yml",
+  "service": "devcontainer",
+  "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
+  "features": {
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "20",
+      "installYarnUsingApt": false
+    },
+    "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {},
+    "ghcr.io/devcontainers/features/github-cli:1": {},
+    "ghcr.io/devcontainers/features/kubectl-helm-minikube:1": {
+      "helm": "latest",
+      "kubectl": "latest",
+      "minikube": "none"
+    },
+    "ghcr.io/devcontainers/features/terraform:1": {
+      "version": "latest"
+    },
+    "ghcr.io/devcontainers/features/azure-cli:1": {}
+  },
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+          "source.fixAll.eslint": "explicit"
+        },
+        "typescript.tsdk": "node_modules/typescript/lib",
+        "typescript.enablePromptUseWorkspaceTsdk": true,
+        "[typescript]": {
+          "editor.defaultFormatter": "esbenp.prettier-vscode"
+        },
+        "[typescriptreact]": {
+          "editor.defaultFormatter": "esbenp.prettier-vscode"
+        },
+        "[json]": {
+          "editor.defaultFormatter": "esbenp.prettier-vscode"
+        },
+        "[jsonc]": {
+          "editor.defaultFormatter": "esbenp.prettier-vscode"
+        },
+        "eslint.workingDirectories": [{ "pattern": "services/*" }, { "pattern": "shared/*" }],
+        "files.eol": "\n",
+        "prisma.showPrismaDataPlatformNotification": false
+      },
+      "extensions": [
+        // TypeScript & JavaScript
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+
+        // React & Frontend
+        "dsznajder.es7-react-js-snippets",
+        "bradlc.vscode-tailwindcss",
+
+        // Database & ORM
+        "Prisma.prisma",
+
+        // Docker & Kubernetes
+        "ms-azuretools.vscode-docker",
+        "ms-kubernetes-tools.vscode-kubernetes-tools",
+
+        // Terraform / Infrastructure
+        "hashicorp.terraform",
+
+        // GitHub
+        "GitHub.copilot",
+        "GitHub.copilot-chat",
+        "GitHub.vscode-github-actions",
+        "GitHub.vscode-pull-request-github",
+
+        // API & Testing
+        "humao.rest-client",
+
+        // Utilities
+        "editorconfig.editorconfig",
+        "mikestead.dotenv",
+        "redhat.vscode-yaml",
+        "ms-azuretools.vscode-azureresourcegroups"
+      ]
+    }
+  },
+  "forwardPorts": [3000, 3001, 3002, 3003, 3004, 3005, 8080],
+  "portsAttributes": {
+    "3000": { "label": "Frontend", "onAutoForward": "notify" },
+    "3001": { "label": "User Service", "onAutoForward": "silent" },
+    "3002": { "label": "Product Service", "onAutoForward": "silent" },
+    "3003": { "label": "Cart Service", "onAutoForward": "silent" },
+    "3004": { "label": "Order Service", "onAutoForward": "silent" },
+    "3005": { "label": "Payment Service", "onAutoForward": "silent" },
+    "8080": { "label": "API Gateway (Kong)", "onAutoForward": "notify" }
+  },
+  "postCreateCommand": "bash .devcontainer/setup.sh",
+  "postStartCommand": "echo '✅ Octo E-Shop devcontainer ready. Run services from the terminal.'",
+  "remoteUser": "node"
+}

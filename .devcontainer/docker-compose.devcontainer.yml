@@ -1,0 +1,82 @@
+services:
+  # Infrastructure services (databases & cache)
+  postgres-user:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: userdb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - postgres-user-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres-product:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: productdb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - postgres-product-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres-order:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: orderdb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - postgres-order-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    volumes:
+      - redis-data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Development container
+  devcontainer:
+    image: mcr.microsoft.com/devcontainers/typescript-node:20
+    volumes:
+      - ..:/workspaces/${localWorkspaceFolderBasename}:cached
+    command: sleep infinity
+    environment:
+      NODE_ENV: development
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: dev-jwt-secret-change-in-production
+      JWT_EXPIRES_IN: 15m
+      REFRESH_TOKEN_EXPIRES_IN: 7d
+    depends_on:
+      postgres-user:
+        condition: service_healthy
+      postgres-product:
+        condition: service_healthy
+      postgres-order:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+volumes:
+  postgres-user-data:
+  postgres-product-data:
+  postgres-order-data:
+  redis-data:
