@@ -31,6 +31,38 @@ A bicycle e-commerce platform built with microservices architecture, deployed on
 
 ## Quick Start
 
+### GitHub Codespaces (recommended)
+
+[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/edinc/octo-eshop-demo)
+
+The devcontainer automatically sets up PostgreSQL, Redis, all dev tools, and per-service `.env` files. Once the container is ready:
+
+```bash
+# Run database migrations
+npx --workspace=services/user-service prisma migrate deploy
+npx --workspace=services/product-service prisma migrate deploy
+npx --workspace=services/order-service prisma migrate deploy
+
+# Start a service
+npm run dev --workspace=services/user-service
+```
+
+### Local development with Docker Compose
+
+```bash
+# Install dependencies
+npm install
+
+# Start all services (databases, backend, frontend, API gateway)
+docker-compose up -d
+
+# Run tests
+npm test
+
+# Build all services
+npm run build
+```
+
 ### From scratch (new Azure environment)
 
 ```bash
@@ -39,22 +71,6 @@ A bicycle e-commerce platform built with microservices architecture, deployed on
 
 # Then trigger infrastructure provisioning (includes cluster add-ons setup)
 gh workflow run infrastructure.yml -f environment=dev -f action=apply
-```
-
-### Existing environment
-
-```bash
-# Install dependencies
-npm install
-
-# Start local development
-docker-compose up -d
-
-# Run tests
-npm test
-
-# Build all services
-npm run build
 ```
 
 ## Project Structure
@@ -74,6 +90,7 @@ octo-eshop-demo/
 ├── infrastructure/         # Terraform (Azure)
 ├── kubernetes/             # K8s manifests & cluster setup
 ├── helm/                   # Helm charts (one per service)
+├── .devcontainer/          # GitHub Codespaces / devcontainer config
 ├── docs/                   # Architecture & pipeline docs
 └── scripts/                # Bootstrap & utility scripts
 ```
