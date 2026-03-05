@@ -1,4 +1,4 @@
-name: Build and Push Images
+name: 🐳 Build and Push Images
 
 on:
   push:
@@ -25,7 +25,7 @@ env:
 
 jobs:
   resolve-tag:
-    name: Resolve Image Tag
+    name: 🏷️ Resolve Image Tag
     runs-on: ubuntu-latest
     outputs:
       image_tag: ${{ steps.tag.outputs.image_tag }}
@@ -45,7 +45,7 @@ jobs:
           fi
 
   changes:
-    name: Detect Changes
+    name: 🔎 Detect Changes
     runs-on: ubuntu-latest
     permissions:
       pull-requests: read
@@ -106,7 +106,7 @@ jobs:
           fi
 
   build-push:
-    name: Build ${{ matrix.service }}
+    name: 📦 Build ${{ matrix.service }}
     runs-on: ubuntu-latest
     needs: [resolve-tag, changes]
     if: needs.changes.outputs.any_changed == 'true'
@@ -174,7 +174,7 @@ jobs:
   # --- Deployment Pipeline: dev → staging → production ---
 
   deploy-dev:
-    name: Deploy to Dev
+    name: 🚀 Deploy to Dev
     needs: [resolve-tag, build-push]
     uses: ./.github/workflows/deploy.yml
     with:
@@ -183,7 +183,7 @@ jobs:
     secrets: inherit
 
   deploy-staging:
-    name: Deploy to Staging
+    name: 🚀 Deploy to Staging
     needs: [resolve-tag, build-push, deploy-dev]
     if: github.ref == 'refs/heads/main'
     uses: ./.github/workflows/deploy.yml
@@ -193,7 +193,7 @@ jobs:
     secrets: inherit
 
   deploy-production:
-    name: Deploy to Production
+    name: 🚀 Deploy to Production
     needs: [resolve-tag, build-push, deploy-staging]
     if: github.ref == 'refs/heads/main'
     uses: ./.github/workflows/deploy.yml

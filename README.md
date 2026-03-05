@@ -1,8 +1,8 @@
 # Octo E-Shop 🚲
 
-[![CI Pipeline](https://github.com/edinc/octo-eshop-demo/actions/workflows/ci.yml/badge.svg)](https://github.com/edinc/octo-eshop-demo/actions/workflows/ci.yml)
-[![Build and Push Images](https://github.com/edinc/octo-eshop-demo/actions/workflows/build-push.yml/badge.svg)](https://github.com/edinc/octo-eshop-demo/actions/workflows/build-push.yml)
-[![Deploy to Environment](https://github.com/edinc/octo-eshop-demo/actions/workflows/deploy.yml/badge.svg)](https://github.com/edinc/octo-eshop-demo/actions/workflows/deploy.yml)
+[![🔍 CI Pipeline](https://github.com/edinc/octo-eshop-demo/actions/workflows/ci.yml/badge.svg)](https://github.com/edinc/octo-eshop-demo/actions/workflows/ci.yml)
+[![🐳 Build and Push Images](https://github.com/edinc/octo-eshop-demo/actions/workflows/build-push.yml/badge.svg)](https://github.com/edinc/octo-eshop-demo/actions/workflows/build-push.yml)
+[![🚀 Deploy to Environment](https://github.com/edinc/octo-eshop-demo/actions/workflows/deploy.yml/badge.svg)](https://github.com/edinc/octo-eshop-demo/actions/workflows/deploy.yml)
 
 A bicycle e-commerce platform built with microservices architecture, deployed on Azure Kubernetes Service.
 

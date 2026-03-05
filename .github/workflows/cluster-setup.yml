@@ -1,4 +1,4 @@
-name: Cluster Setup
+name: ⚙️ Cluster Setup
 
 on:
   workflow_call:
@@ -14,7 +14,7 @@ permissions:
 
 jobs:
   setup:
-    name: Setup Cluster (${{ inputs.environment }})
+    name: ⚙️ Setup Cluster (${{ inputs.environment }})
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
     steps:

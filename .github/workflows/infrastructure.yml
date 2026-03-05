@@ -1,4 +1,4 @@
-name: Infrastructure
+name: 🏗️ Infrastructure
 
 on:
   push:
@@ -31,7 +31,7 @@ permissions:
 jobs:
   # On push: plan all environments to validate changes
   plan-dev:
-    name: Plan Dev
+    name: 📋 Plan Dev
     if: github.event_name == 'push'
     uses: ./.github/workflows/terraform-deploy.yml
     with:
@@ -40,7 +40,7 @@ jobs:
     secrets: inherit
 
   plan-staging:
-    name: Plan Staging
+    name: 📋 Plan Staging
     if: github.event_name == 'push'
     uses: ./.github/workflows/terraform-deploy.yml
     with:
@@ -49,7 +49,7 @@ jobs:
     secrets: inherit
 
   plan-production:
-    name: Plan Production
+    name: 📋 Plan Production
     if: github.event_name == 'push'
     uses: ./.github/workflows/terraform-deploy.yml
     with:
@@ -59,7 +59,7 @@ jobs:
 
   # On dispatch: run against selected environment
   dispatch:
-    name: Dispatch
+    name: 📤 Dispatch
     if: github.event_name == 'workflow_dispatch'
     uses: ./.github/workflows/terraform-deploy.yml
     with:
@@ -69,7 +69,7 @@ jobs:
 
   # After apply: configure cluster add-ons
   cluster-setup:
-    name: Cluster Setup
+    name: ⚙️ Cluster Setup
     needs: dispatch
     if: github.event_name == 'workflow_dispatch' && inputs.action == 'apply'
     uses: ./.github/workflows/cluster-setup.yml
