@@ -4,29 +4,29 @@ title: End-to-End Demo (20 min)
 description: A curated sequence covering all major Copilot capabilities in one session.
 ---
 
-import { Aside, Steps } from "@astrojs/starlight/components";
+import { Aside, Steps } from '@astrojs/starlight/components';
 
 This guide walks through a complete Copilot showcase, hitting every major capability in a natural flow. Each section includes the prompt, what to narrate, and timing guidance.
 
 <Aside type="tip">
-  Practice the full sequence once before presenting. Copilot responses vary
-  slightly each time — familiarity helps you narrate confidently.
+  Practice the full sequence once before presenting. Copilot responses vary slightly each time —
+  familiarity helps you narrate confidently.
 </Aside>
 
 ---
 
 ## Sequence Overview
 
-| # | Section | Capability | Suggested Time |
-|---|---------|-----------|---------------|
-| 1 | Plan a new service | Plan Agent | 3 min |
-| 2 | Scaffold the implementation | Coding Agent | 3 min |
-| 3 | Review the changes | Review Agent | 2 min |
-| 4 | Generate BDD tests | Custom Agents | 2 min |
-| 5 | Create CI workflow | Custom Agents | 2 min |
-| 6 | Visualize architecture | Custom Skills | 2 min |
-| 7 | Terminal assistance | Copilot CLI | 2 min |
-| 8 | Code quality & security | Code Quality | 4 min |
+| #   | Section                     | Capability    | Suggested Time |
+| --- | --------------------------- | ------------- | -------------- |
+| 1   | Plan a new service          | Plan Agent    | 3 min          |
+| 2   | Scaffold the implementation | Coding Agent  | 3 min          |
+| 3   | Review the changes          | Review Agent  | 2 min          |
+| 4   | Generate BDD tests          | Custom Agents | 2 min          |
+| 5   | Create CI workflow          | Custom Agents | 2 min          |
+| 6   | Visualize architecture      | Custom Skills | 2 min          |
+| 7   | Terminal assistance         | Copilot CLI   | 2 min          |
+| 8   | Code quality & security     | Code Quality  | 4 min          |
 
 ---
 
@@ -139,10 +139,10 @@ repo. Show the diff and rationale.
 **Narrate:** _"Finally, let's look at GitHub's built-in code quality features enhanced by Copilot."_
 
 <Steps>
-  1. **CodeQL:** Show Settings → Code security → Code scanning. Walk through a finding.
-  2. **Copilot Autofix:** Click "Generate fix" on a CodeQL alert. Show the suggested patch.
-  3. **Secret scanning:** Show push protection is enabled. Explain how it blocks leaked secrets.
-  4. **Security Overview:** Navigate to Security → Overview. Show the unified dashboard.
+  1. **CodeQL:** Show Settings → Code security → Code scanning. Walk through a finding. 2. **Copilot
+  Autofix:** Click "Generate fix" on a CodeQL alert. Show the suggested patch. 3. **Secret
+  scanning:** Show push protection is enabled. Explain how it blocks leaked secrets. 4. **Security
+  Overview:** Navigate to Security → Overview. Show the unified dashboard.
 </Steps>
 
 **What to highlight:** Code quality findings surface directly in the developer workflow — no context switching needed.
@@ -152,8 +152,8 @@ repo. Show the diff and rationale.
 ## Recovery Tips
 
 <Aside type="caution" title="If something goes wrong">
-  - **Copilot gives a broad response:** Follow up with _"Make this minimal and repo-specific."_
-  - **Agent times out:** Retry the prompt or use a simpler version.
-  - **Code doesn't compile:** Narrate it as a learning moment — _"This is why we review AI output."_
-  - **Unexpected CodeQL results:** Focus on the Autofix capability rather than specific findings.
+  - **Copilot gives a broad response:** Follow up with _"Make this minimal and repo-specific."_ -
+  **Agent times out:** Retry the prompt or use a simpler version. - **Code doesn't compile:**
+  Narrate it as a learning moment — _"This is why we review AI output."_ - **Unexpected CodeQL
+  results:** Focus on the Autofix capability rather than specific findings.
 </Aside>

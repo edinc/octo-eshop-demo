@@ -4,7 +4,7 @@ title: Presenter Tips
 description: Narration tips, pacing guidance, and recovery strategies for demos.
 ---
 
-import { Aside } from "@astrojs/starlight/components";
+import { Aside } from '@astrojs/starlight/components';
 
 ## General Principles
 
@@ -33,11 +33,11 @@ This structure helps the audience follow along even if the output is dense.
 
 ## Pacing
 
-| Audience          | Suggested Total Time | Focus Areas                                    |
-| ----------------- | -------------------- | ---------------------------------------------- |
-| Executives        | 10 min               | Plan Agent, Review Agent, Security Overview    |
-| Engineering leads | 20 min               | Full end-to-end sequence                       |
-| Developers        | 30+ min              | Full sequence with live coding follow-ups      |
+| Audience          | Suggested Total Time | Focus Areas                                 |
+| ----------------- | -------------------- | ------------------------------------------- |
+| Executives        | 10 min               | Plan Agent, Review Agent, Security Overview |
+| Engineering leads | 20 min               | Full end-to-end sequence                    |
+| Developers        | 30+ min              | Full sequence with live coding follow-ups   |
 
 ### Timing Tips
 
@@ -50,12 +50,10 @@ This structure helps the audience follow along even if the output is dense.
 ## Demo Environment Setup
 
 <Aside type="tip" title="Pre-demo checklist">
-  - [ ] Codespace is running and services are up (`docker-compose up -d`)
-  - [ ] VS Code has Copilot Chat open in sidebar
-  - [ ] Terminal is open and split-screened (for CLI demos)
-  - [ ] GitHub web UI is open to the repo (for Code Quality demos)
-  - [ ] Font size is large enough for the audience (16pt+ in VS Code)
-  - [ ] Any PR for review demos is already created
+  - [ ] Codespace is running and services are up (`docker-compose up -d`) - [ ] VS Code has Copilot
+  Chat open in sidebar - [ ] Terminal is open and split-screened (for CLI demos) - [ ] GitHub web UI
+  is open to the repo (for Code Quality demos) - [ ] Font size is large enough for the audience
+  (16pt+ in VS Code) - [ ] Any PR for review demos is already created
 </Aside>
 
 ---
@@ -101,13 +99,17 @@ For maximum impact, structure the demo as a story:
 ## Common Questions & Answers
 
 **Q: Does Copilot replace developers?**
+
 > _"No — it's a force multiplier. Developers still make design decisions, review output, and own quality. Copilot handles the repetitive parts so developers focus on what matters."_
 
 **Q: How does it know about our codebase?**
+
 > _"Copilot reads the repository context — file structure, imports, naming conventions, configuration files — and uses that to generate contextually relevant code."_
 
 **Q: Is the generated code secure?**
+
 > _"AI-generated code should go through the same review process as human-written code. That's why we showed the Review Agent and CodeQL — they catch issues regardless of who wrote the code."_
 
 **Q: What about data privacy?**
+
 > _"Copilot processes code in context but doesn't store or train on your private repository code. Check GitHub's Copilot trust documentation for the latest details."_

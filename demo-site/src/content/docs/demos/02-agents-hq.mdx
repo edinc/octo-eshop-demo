@@ -4,7 +4,7 @@ title: Agents HQ
 description: Multi-agent orchestration, PR automation, and policy alignment in the GitHub web experience.
 ---
 
-import { Aside } from "@astrojs/starlight/components";
+import { Aside } from '@astrojs/starlight/components';
 
 ## What This Demonstrates
 
@@ -26,9 +26,8 @@ consistency. For each, define scope, trigger conditions, and expected outputs.
 ```
 
 <Aside type="tip" title="Why this works">
-  Copilot understands the repo structure — infrastructure in `infrastructure/`,
-  backend services in `services/*-service/`, and frontend in `services/frontend/`
-  — and tailors agents to each domain.
+  Copilot understands the repo structure — infrastructure in `infrastructure/`, backend services in
+  `services/*-service/`, and frontend in `services/frontend/` — and tailors agents to each domain.
 </Aside>
 
 **What to look for:**
@@ -48,9 +47,8 @@ what each should validate.
 ```
 
 <Aside type="tip" title="Why this works">
-  Cross-domain PRs need multiple agents running in a coordinated sequence.
-  Copilot maps the file changes to appropriate agents and determines execution
-  order.
+  Cross-domain PRs need multiple agents running in a coordinated sequence. Copilot maps the file
+  changes to appropriate agents and determines execution order.
 </Aside>
 
 **What to look for:**
@@ -70,8 +68,8 @@ before merge.
 ```
 
 <Aside type="tip" title="Why this works">
-  Combines GitHub branch protection rules with Agents HQ policies for a
-  comprehensive governance model that prevents unsafe merges.
+  Combines GitHub branch protection rules with Agents HQ policies for a comprehensive governance
+  model that prevents unsafe merges.
 </Aside>
 
 **What to look for:**

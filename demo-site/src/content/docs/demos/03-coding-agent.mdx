@@ -4,7 +4,7 @@ title: Coding Agent
 description: Use Copilot's coding agent for implementation, cross-cutting changes, and bugfix scenarios.
 ---
 
-import { Aside } from "@astrojs/starlight/components";
+import { Aside } from '@astrojs/starlight/components';
 
 ## What This Demonstrates
 
@@ -25,9 +25,8 @@ unit tests for them, following existing code style and API response format.
 ```
 
 <Aside type="tip" title="Why this works">
-  Copilot identifies the Express router pattern, the `success/data/error/meta`
-  response format, and the test setup used in other services — then applies the
-  same conventions to new endpoints.
+  Copilot identifies the Express router pattern, the `success/data/error/meta` response format, and
+  the test setup used in other services — then applies the same conventions to new endpoints.
 </Aside>
 
 **What to look for:**
@@ -46,9 +45,9 @@ ensure logs include the request ID. Make minimal, consistent changes only.
 ```
 
 <Aside type="tip" title="Why this works">
-  Cross-cutting changes require understanding all services simultaneously.
-  Copilot applies the same middleware pattern across `user-service`,
-  `product-service`, `cart-service`, `order-service`, and `payment-service`.
+  Cross-cutting changes require understanding all services simultaneously. Copilot applies the same
+  middleware pattern across `user-service`, `product-service`, `cart-service`, `order-service`, and
+  `payment-service`.
 </Aside>
 
 **What to look for:**
@@ -67,9 +66,8 @@ checkout flow. Add/adjust tests to prove the fix.
 ```
 
 <Aside type="tip" title="Why this works">
-  Copilot audits the checkout flow for missing validation (e.g., negative
-  quantities, empty carts, invalid payment references) and produces a targeted
-  fix with tests.
+  Copilot audits the checkout flow for missing validation (e.g., negative quantities, empty carts,
+  invalid payment references) and produces a targeted fix with tests.
 </Aside>
 
 **What to look for:**

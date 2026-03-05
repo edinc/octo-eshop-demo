@@ -4,7 +4,7 @@ title: CI/CD Pipeline
 description: Continuous integration, delivery, and infrastructure workflows for the Octo E-Shop.
 ---
 
-import { Aside } from "@astrojs/starlight/components";
+import { Aside } from '@astrojs/starlight/components';
 
 ## Overview
 
@@ -18,15 +18,15 @@ Code Push → CI Validation → Build & Push Images → Deploy Dev → Deploy St
 
 ## Workflow Inventory
 
-| Workflow | File | Trigger | Purpose |
-|----------|------|---------|---------|
-| **CI Pipeline** | `ci.yml` | PR, push to main/develop | Lint, test, build validation |
-| **Build & Push** | `build-push.yml` | Push to main/develop | Build Docker images, push to ACR |
-| **Deploy** | `deploy.yml` | Called by Build & Push | Helm deploy to AKS environments |
-| **Infrastructure** | `infrastructure.yml` | Manual, Terraform changes | Terraform plan/apply |
-| **Terraform Deploy** | `terraform-deploy.yml` | Called by Infrastructure | Per-environment Terraform execution |
-| **Cluster Setup** | `cluster-setup.yml` | After Terraform apply | Install ESO, ingress-nginx, secrets |
-| **Rollback** | `rollback.yml` | Manual | Helm rollback to previous release |
+| Workflow             | File                   | Trigger                   | Purpose                             |
+| -------------------- | ---------------------- | ------------------------- | ----------------------------------- |
+| **CI Pipeline**      | `ci.yml`               | PR, push to main/develop  | Lint, test, build validation        |
+| **Build & Push**     | `build-push.yml`       | Push to main/develop      | Build Docker images, push to ACR    |
+| **Deploy**           | `deploy.yml`           | Called by Build & Push    | Helm deploy to AKS environments     |
+| **Infrastructure**   | `infrastructure.yml`   | Manual, Terraform changes | Terraform plan/apply                |
+| **Terraform Deploy** | `terraform-deploy.yml` | Called by Infrastructure  | Per-environment Terraform execution |
+| **Cluster Setup**    | `cluster-setup.yml`    | After Terraform apply     | Install ESO, ingress-nginx, secrets |
+| **Rollback**         | `rollback.yml`         | Manual                    | Helm rollback to previous release   |
 
 ## Pipeline Flows
 
@@ -69,11 +69,11 @@ Emergency rollback via Helm:
 
 ## Environment Strategy
 
-| Environment | Branch | Deployment | Approval |
-|------------|--------|------------|----------|
-| **Dev** | main, develop | Automatic | None |
-| **Staging** | main | Manual trigger | Required |
-| **Production** | main | Manual trigger | Required |
+| Environment    | Branch        | Deployment     | Approval |
+| -------------- | ------------- | -------------- | -------- |
+| **Dev**        | main, develop | Automatic      | None     |
+| **Staging**    | main          | Manual trigger | Required |
+| **Production** | main          | Manual trigger | Required |
 
 ## Secrets Management
 
@@ -84,8 +84,8 @@ Secrets flow through three layers:
 3. **Kubernetes Secrets** — Injected at deploy time via `kubectl` or External Secrets Operator
 
 <Aside type="caution">
-  ACR secrets exist at repo level only (not per-environment) since all
-  environments share one ACR for builds.
+  ACR secrets exist at repo level only (not per-environment) since all environments share one ACR
+  for builds.
 </Aside>
 
 ## Deployment Details
@@ -118,5 +118,6 @@ Kubernetes probes verify service health during rolling updates:
 - **Readiness** — `/ready` endpoint (checks database connectivity)
 
 <Aside>
-  For infrastructure details, see the [Architecture](/octo-eshop-demo/reference/architecture/) reference.
+  For infrastructure details, see the [Architecture](/octo-eshop-demo/reference/architecture/)
+  reference.
 </Aside>

@@ -4,7 +4,7 @@ title: Custom Skills
 description: Excalidraw diagram generation and Azure resource visualization skills.
 ---
 
-import { Aside } from "@astrojs/starlight/components";
+import { Aside } from '@astrojs/starlight/components';
 
 ## What This Demonstrates
 
@@ -28,9 +28,9 @@ order-service, payment-service, and their communication paths (HTTP sync
 ```
 
 <Aside type="tip" title="Why this works">
-  The skill translates natural language into Excalidraw's JSON format, creating
-  properly positioned elements with labeled arrows showing communication
-  patterns. The output can be opened directly in Excalidraw.
+  The skill translates natural language into Excalidraw's JSON format, creating properly positioned
+  elements with labeled arrows showing communication patterns. The output can be opened directly in
+  Excalidraw.
 </Aside>
 
 **What to look for:**
@@ -62,9 +62,8 @@ architecture diagram showing all resources and their relationships.
 ```
 
 <Aside type="tip" title="Why this works">
-  The skill queries your Azure subscription, discovers all resources in the
-  resource group, identifies relationships (e.g., AKS → ACR, PostgreSQL →
-  VNet), and renders a Mermaid diagram.
+  The skill queries your Azure subscription, discovers all resources in the resource group,
+  identifies relationships (e.g., AKS → ACR, PostgreSQL → VNet), and renders a Mermaid diagram.
 </Aside>
 
 **What to look for:**
@@ -74,8 +73,8 @@ architecture diagram showing all resources and their relationships.
 - Resource metadata (SKU, location) as labels
 
 <Aside type="caution">
-  This skill requires Azure CLI authentication (`az login`) and appropriate
-  read permissions on the target resource group.
+  This skill requires Azure CLI authentication (`az login`) and appropriate read permissions on the
+  target resource group.
 </Aside>
 
 ### Follow-Up Prompts
