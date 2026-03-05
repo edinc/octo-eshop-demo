@@ -1,4 +1,4 @@
-name: Deploy Demo Site
+name: 📖 Deploy Demo Site
 
 on:
   push:

@@ -1,4 +1,4 @@
-name: Terraform Deploy
+name: 🌍 Terraform Deploy
 
 on:
   workflow_call:
@@ -18,7 +18,7 @@ permissions:
 
 jobs:
   terraform:
-    name: Terraform ${{ inputs.action }} (${{ inputs.environment }})
+    name: 🌍 Terraform ${{ inputs.action }} (${{ inputs.environment }})
     runs-on: ubuntu-latest
     environment: ${{ inputs.action == 'apply' && inputs.environment || '' }}
     defaults:

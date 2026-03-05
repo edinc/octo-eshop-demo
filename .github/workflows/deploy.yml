@@ -1,4 +1,4 @@
-name: Deploy to Environment
+name: 🚀 Deploy to Environment
 
 on:
   workflow_call:
@@ -32,7 +32,7 @@ permissions:
 
 jobs:
   deploy:
-    name: Deploy to ${{ inputs.environment }}
+    name: 🚀 Deploy to ${{ inputs.environment }}
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
     env:
