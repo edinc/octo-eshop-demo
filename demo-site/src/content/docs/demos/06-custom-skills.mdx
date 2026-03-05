@@ -1,0 +1,84 @@
+---
+draft: false
+title: Custom Skills
+description: Excalidraw diagram generation and Azure resource visualization skills.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+## What This Demonstrates
+
+This repo ships **2 custom skills** under `.github/skills/`. Skills are specialized tools that Copilot can invoke to produce artifacts like diagrams and visualizations.
+
+---
+
+## Excalidraw Diagram Generator
+
+**Skill location:** `.github/skills/excalidraw-diagram-generator/`
+
+Generates `.excalidraw` diagram files from natural language descriptions. Supports flowcharts, relationship diagrams, mind maps, and system architecture diagrams.
+
+### Prompt
+
+```text
+Create an Excalidraw architecture diagram showing the Octo E-Shop
+microservices: frontend, user-service, product-service, cart-service,
+order-service, payment-service, and their communication paths (HTTP sync
++ Azure Service Bus async).
+```
+
+<Aside type="tip" title="Why this works">
+  The skill translates natural language into Excalidraw's JSON format, creating properly positioned
+  elements with labeled arrows showing communication patterns. The output can be opened directly in
+  Excalidraw.
+</Aside>
+
+**What to look for:**
+
+- `.excalidraw` file output that opens in Excalidraw
+- Service boxes with labels matching actual service names
+- Two types of arrows: solid (HTTP sync) and dashed (async events)
+- Logical layout grouping related services
+
+### Follow-Up Prompts
+
+- _"Add Azure infrastructure components (AKS, ACR, Key Vault) to the diagram."_
+- _"Create a sequence diagram showing the checkout flow from cart to payment."_
+- _"Generate a mind map of all the technologies used in this project."_
+
+---
+
+## Azure Resource Visualizer
+
+**Skill location:** `.github/skills/azure-resource-visualizer/`
+
+Analyzes Azure resource groups and produces Mermaid architecture diagrams showing relationships between individual resources.
+
+### Prompt
+
+```text
+Analyze the Azure resource group for this project and generate a Mermaid
+architecture diagram showing all resources and their relationships.
+```
+
+<Aside type="tip" title="Why this works">
+  The skill queries your Azure subscription, discovers all resources in the resource group,
+  identifies relationships (e.g., AKS → ACR, PostgreSQL → VNet), and renders a Mermaid diagram.
+</Aside>
+
+**What to look for:**
+
+- All Azure resources represented (AKS, ACR, PostgreSQL, Redis, Key Vault, etc.)
+- Relationship arrows between dependent resources
+- Resource metadata (SKU, location) as labels
+
+<Aside type="caution">
+  This skill requires Azure CLI authentication (`az login`) and appropriate read permissions on the
+  target resource group.
+</Aside>
+
+### Follow-Up Prompts
+
+- _"Compare resources across the dev and staging environments."_
+- _"Highlight which resources would be affected by a VNet change."_
+- _"Export the diagram as SVG for documentation."_

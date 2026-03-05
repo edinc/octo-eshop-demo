@@ -1,0 +1,114 @@
+---
+draft: false
+title: Getting Started
+description: Set up your environment to run the Octo E-Shop Copilot demos.
+---
+
+import { Steps, Tabs, TabItem } from '@astrojs/starlight/components';
+
+## Prerequisites
+
+- GitHub account with [Copilot](https://github.com/features/copilot) access
+- VS Code with the [GitHub Copilot extension](https://marketplace.visualstudio.com/items?itemName=GitHub.copilot)
+- [GitHub Copilot CLI](https://docs.github.com/en/copilot/using-github-copilot/using-github-copilot-in-the-command-line) (for CLI demos)
+
+## Launch the Environment
+
+<Tabs>
+  <TabItem label="Codespaces (Recommended)">
+    The fastest way to get started — everything is pre-configured.
+
+    <Steps>
+      1. Click the button below to open in Codespaces:
+
+         [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/edinc/octo-eshop-demo)
+
+      2. Wait for the devcontainer to build (includes Node 20, Docker, GitHub CLI, kubectl, Helm, Terraform, Azure CLI).
+
+      3. Start databases and services:
+
+         ```bash
+         docker-compose up -d
+         ```
+
+      4. Verify everything is running:
+
+         ```bash
+         npm test
+         ```
+    </Steps>
+
+  </TabItem>
+  <TabItem label="Local Development">
+    <Steps>
+      1. Clone the repository:
+
+         ```bash
+         git clone https://github.com/edinc/octo-eshop-demo.git
+         cd octo-eshop-demo
+         ```
+
+      2. Install dependencies (requires Node.js ≥ 20):
+
+         ```bash
+         npm install
+         ```
+
+      3. Start services with Docker Compose:
+
+         ```bash
+         docker-compose up -d
+         ```
+
+      4. Run tests to verify:
+
+         ```bash
+         npm test
+         ```
+    </Steps>
+
+  </TabItem>
+</Tabs>
+
+## Recommended VS Code Extensions
+
+The devcontainer installs these automatically. For local setup, install manually:
+
+| Extension           | Purpose                        |
+| ------------------- | ------------------------------ |
+| GitHub Copilot      | AI pair programming            |
+| GitHub Copilot Chat | Chat-based Copilot interaction |
+| ESLint              | Linting                        |
+| Prettier            | Code formatting                |
+| Prisma              | Database schema editing        |
+| Docker              | Container management           |
+| Kubernetes          | K8s resource viewing           |
+| HashiCorp Terraform | Infrastructure as Code         |
+
+## Project Structure
+
+```
+octo-eshop-demo/
+├── services/               # Microservices (npm workspaces)
+│   ├── frontend/           # React SPA
+│   ├── user-service/       # Authentication & profiles
+│   ├── product-service/    # Bicycle catalog
+│   ├── cart-service/       # Shopping cart (Redis)
+│   ├── order-service/      # Order lifecycle
+│   └── payment-service/    # Mock payment gateway
+├── shared/                 # Shared packages
+│   ├── types/              # @octo-eshop/types
+│   └── utils/              # @octo-eshop/utils
+├── infrastructure/         # Terraform (Azure)
+├── kubernetes/             # K8s manifests
+├── helm/                   # Helm charts
+└── docs/                   # Architecture docs
+```
+
+## Next Steps
+
+Once your environment is ready, jump into any demo:
+
+- **New to Copilot?** Start with the [End-to-End Demo](/octo-eshop-demo/guides/end-to-end-demo/) for a guided tour
+- **Running a presentation?** Check [Presenter Tips](/octo-eshop-demo/guides/presenter-tips/) for pacing and narration advice
+- **Exploring specific features?** Pick any demo from the sidebar

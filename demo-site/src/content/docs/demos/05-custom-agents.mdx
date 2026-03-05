@@ -1,0 +1,126 @@
+---
+draft: false
+title: Custom Agents
+description: Specialized agents for BDD testing, Terraform planning, and GitHub Actions security.
+---
+
+import { Aside, Tabs, TabItem } from '@astrojs/starlight/components';
+
+## What This Demonstrates
+
+This repo ships **3 custom agents** under `.github/agents/`. Each is a domain expert that can be invoked by name in Copilot Chat.
+
+---
+
+## BDD Specialist
+
+**Agent file:** `.github/agents/bdd-specialist.agent.md`
+
+Generates Gherkin feature files, coverage matrices, and Playwright E2E tests.
+
+### Prompt A — Coverage Matrix + Gherkin
+
+```text
+@bdd-specialist Create a BDD coverage matrix and Gherkin feature file for the
+checkout flow in `services/order-service`. Include happy path, edge cases
+(empty cart, out-of-stock), error scenarios (payment failure), and
+accessibility checks.
+```
+
+<Aside type="tip" title="Why this works">
+  The BDD Specialist understands the checkout flow's dependencies (cart → order → payment) and
+  generates comprehensive scenarios with structured Given/When/Then format.
+</Aside>
+
+**What to look for:**
+
+- Coverage matrix with scenario categories
+- Gherkin `.feature` file with proper tags
+- Edge cases specific to this project's checkout flow
+
+### Prompt B — Playwright E2E Tests
+
+```text
+@bdd-specialist Write Playwright E2E tests for the product catalog search
+feature, covering search with results, search with no matches, and
+keyboard-only navigation. Follow the project's existing Playwright config
+and page-object patterns.
+```
+
+---
+
+## Terraform Azure Infrastructure Planning
+
+**Agent file:** `.github/agents/terraform-azure-planning.agent.md`
+
+Creates detailed, phased Terraform implementation plans for Azure resources.
+
+### Prompt A — Service Bus Integration
+
+```text
+@terraform-azure-planning Create an implementation plan for adding Azure
+Service Bus to this project for async event-driven communication between
+order-service and payment-service. Include resource definitions,
+dependencies, and phased tasks.
+```
+
+<Aside type="tip" title="Why this works">
+  The agent knows the existing Terraform module structure and Azure resource patterns, producing
+  plans that fit into the established `infrastructure/terraform/modules/` layout.
+</Aside>
+
+**What to look for:**
+
+- Terraform module structure consistent with existing modules
+- Resource dependencies and ordering
+- Integration with existing networking (VNet, subnets)
+
+### Prompt B — Redis Cache with Private Endpoint
+
+```text
+@terraform-azure-planning Plan the Azure infrastructure needed to add Redis
+Cache (for cart-service session store) with private endpoint connectivity
+to the existing AKS cluster.
+```
+
+---
+
+## GitHub Actions Expert
+
+**Agent file:** `.github/agents/github-actions-expert.agent.md`
+
+Designs secure, least-privilege CI/CD workflows with supply-chain hardening.
+
+### Prompt A — Security Audit
+
+```text
+@github-actions-expert Review the existing GitHub Actions workflows in this
+repo and suggest security improvements: action pinning, permissions
+hardening, OIDC for Azure, and dependency review.
+```
+
+<Aside type="tip" title="Why this works">
+  The agent evaluates each workflow against security best practices — checking for unpinned actions,
+  overly broad permissions, and missing supply-chain protections.
+</Aside>
+
+**What to look for:**
+
+- Actions pinned to SHA (not just version tags)
+- Minimal `permissions` blocks
+- OIDC authentication instead of long-lived secrets
+
+### Prompt B — Reusable CI Workflow
+
+```text
+@github-actions-expert Create a reusable CI workflow for backend services
+that runs lint, unit tests, and container image build — triggered only when
+that service's files change. Follow least-privilege permissions and pin
+all actions.
+```
+
+## Follow-Up Prompts
+
+- _"@bdd-specialist Add negative test scenarios for authentication failures."_
+- _"@terraform-azure-planning What's the estimated monthly cost for these resources?"_
+- _"@github-actions-expert Add a matrix strategy to test across Node 18 and 20."_

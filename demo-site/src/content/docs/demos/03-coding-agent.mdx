@@ -1,0 +1,83 @@
+---
+draft: false
+title: Coding Agent
+description: Use Copilot's coding agent for implementation, cross-cutting changes, and bugfix scenarios.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+## What This Demonstrates
+
+The **Copilot Coding Agent** implements features, applies cross-cutting changes, and fixes bugs — generating code that follows existing project conventions.
+
+## Prerequisites
+
+- VS Code with Copilot Chat open
+- Repository loaded with services running (`docker-compose up -d`)
+
+## Prompts
+
+### Prompt A — Small Implementation
+
+```text
+Implement health/readiness endpoints for `services/payment-service` and add
+unit tests for them, following existing code style and API response format.
+```
+
+<Aside type="tip" title="Why this works">
+  Copilot identifies the Express router pattern, the `success/data/error/meta` response format, and
+  the test setup used in other services — then applies the same conventions to new endpoints.
+</Aside>
+
+**What to look for:**
+
+- `/health` and `/ready` endpoints following the project's response format
+- Unit tests matching existing test structure and assertion style
+- Proper TypeScript types from `@octo-eshop/types`
+
+---
+
+### Prompt B — Cross-Cutting Change
+
+```text
+Add standardized request ID propagation middleware to all backend services and
+ensure logs include the request ID. Make minimal, consistent changes only.
+```
+
+<Aside type="tip" title="Why this works">
+  Cross-cutting changes require understanding all services simultaneously. Copilot applies the same
+  middleware pattern across `user-service`, `product-service`, `cart-service`, `order-service`, and
+  `payment-service`.
+</Aside>
+
+**What to look for:**
+
+- Consistent middleware implementation across all services
+- Request ID in log output
+- Minimal diff — no unnecessary refactoring
+
+---
+
+### Prompt C — Bugfix Scenario
+
+```text
+Find and fix one realistic input-validation gap in `services/order-service`
+checkout flow. Add/adjust tests to prove the fix.
+```
+
+<Aside type="tip" title="Why this works">
+  Copilot audits the checkout flow for missing validation (e.g., negative quantities, empty carts,
+  invalid payment references) and produces a targeted fix with tests.
+</Aside>
+
+**What to look for:**
+
+- Identified validation gap with explanation
+- Surgical fix (not a rewrite)
+- Tests that cover both the happy path and the edge case
+
+## Follow-Up Prompts
+
+- _"Now add integration tests for the health endpoints using supertest."_
+- _"Show me the diff summary of all changes made."_
+- _"Are there similar validation gaps in cart-service?"_
