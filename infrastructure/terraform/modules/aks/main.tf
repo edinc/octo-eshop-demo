@@ -27,7 +27,7 @@ resource "azurerm_kubernetes_cluster" "main" {
 
   network_profile {
     network_plugin    = "azure"
-    network_policy    = "calico"
+    network_policy    = "azure"
     load_balancer_sku = "standard"
     service_cidr      = "10.1.0.0/16"
   }
@@ -56,6 +56,7 @@ resource "azurerm_monitor_diagnostic_setting" "aks" {
   target_resource_id         = azurerm_kubernetes_cluster.main.id
   log_analytics_workspace_id = var.log_analytics_workspace_id
 
+  # Core AKS control plane logs for cluster operations and troubleshooting.
   enabled_log {
     category = "kube-apiserver"
   }
