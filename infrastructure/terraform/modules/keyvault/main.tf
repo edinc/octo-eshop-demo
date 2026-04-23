@@ -23,7 +23,7 @@ resource "azurerm_key_vault" "main" {
 
   sku_name = "standard"
 
-  enable_rbac_authorization = true
+  rbac_authorization_enabled = true
 
   network_acls {
     default_action             = "Allow"
