@@ -274,25 +274,31 @@ Secrets are injected via `kubectl create secret` (not Helm `--set`) to avoid she
 graph TD
     A{Trigger Type?}
 
-    A -->|Push to main<br/>terraform changes| B[Plan All Environments]
+    A -->|Push to main<br/>terraform changes| B[Progressive Deploy]
     B --> C1[Plan Dev]
-    B --> C2[Plan Staging]
-    B --> C3[Plan Production]
-    C1 & C2 & C3 --> D[Review Plans<br/>in workflow logs]
+    C1 --> D1[Apply Dev]
+    D1 --> C2[Plan Staging]
+    C2 --> D2[Apply Staging]
+    D2 --> C3[Plan Production]
+    C3 --> D3[Apply Production]
 
     A -->|Manual Dispatch| E[Select Environment<br/>& Action]
     E --> F{Action?}
     F -->|plan| G[Terraform Plan<br/>review only]
     F -->|apply| H[Terraform Apply<br/>makes changes]
+    H --> I[Cluster Setup<br/>ESO + ingress-nginx]
 
     style B fill:#E3F2FD
+    style D1 fill:#4CAF50,color:white
+    style D2 fill:#FF9800,color:white
+    style D3 fill:#F44336,color:white
     style G fill:#FFF9C4
     style H fill:#FFCDD2
 ```
 
 **Triggers:**
 
-- `push` to `main` with changes in `infrastructure/terraform/**` → plans all 3 environments (validation only)
+- `push` to `main` with changes in `infrastructure/terraform/**` → **progressive deploy** through all 3 environments (plan + apply for each, sequentially: dev → staging → production). A failure in any environment stops the pipeline.
 - `workflow_dispatch` → select environment (dev/staging/production) and action (plan/apply)
 
 #### Terraform Deploy Sub-Workflow
@@ -302,9 +308,9 @@ graph TD
 ```mermaid
 graph TD
     A[Start] --> B[Checkout Code]
-    B --> C[Azure Login<br/>via AZURE_CREDENTIALS]
+    B --> C[Azure Login<br/>via OIDC]
     C --> D[Setup Terraform ≥1.5]
-    D --> E[Set ARM Environment Variables<br/>from AZURE_CREDENTIALS JSON]
+    D --> E[Set ARM Environment Variables<br/>OIDC + ARM_USE_OIDC=true]
     E --> F[terraform init<br/>remote backend in Azure Storage]
     F --> G[terraform plan -out=tfplan]
     G --> H{Action = apply?}
@@ -318,6 +324,15 @@ graph TD
     style K fill:#80DEEA
     style L fill:#C8E6C9
 ```
+
+**Authentication:**
+
+The workflow uses **OIDC (OpenID Connect)** federated credentials — no secrets to rotate. GitHub Actions exchanges a short-lived OIDC token with Azure AD to authenticate. This is configured via:
+
+- Azure AD app registration: `octoeshop-github-actions`
+- Federated credentials for: `main` branch, pull requests, and `dev`/`staging`/`production` environments
+- GitHub secrets: `AZURE_CLIENT_ID`, `AZURE_TENANT_ID`, `AZURE_SUBSCRIPTION_ID`
+- Terraform uses `ARM_USE_OIDC=true` for both provider and backend authentication
 
 **Post-Apply Automation:**
 
@@ -336,7 +351,13 @@ Each environment stores state in the shared Azure Storage Account:
 
 - Container: `tfstate`
 - Keys: `dev.terraform.tfstate`, `staging.terraform.tfstate`, `production.terraform.tfstate`
-- Authentication: Azure AD (via service principal)
+- Authentication: OIDC via Azure AD (no shared keys)
+
+**Terraform Provider:**
+
+- `hashicorp/azurerm` version `~> 4.0` (migrated from v3 in April 2026 for AKS preview API retirement)
+- `resource_provider_registrations = "none"` (RPs managed externally)
+- AKS uses `monitor_metrics {}` + `azurerm_monitor_diagnostic_setting` for observability
 
 **Resources provisioned per environment:**
 
@@ -345,6 +366,7 @@ Each environment stores state in the shared Azure Storage Account:
 | Resource Group                   | `azurerm_resource_group` |
 | Virtual Network + Subnets + NSGs | `modules/networking`     |
 | AKS Cluster                      | `modules/aks`            |
+| AKS Diagnostics                  | `modules/aks`            |
 | Container Registry               | `modules/acr`            |
 | PostgreSQL Flexible Server (×3)  | `modules/postgresql`     |
 | Redis Cache                      | `modules/redis`          |
@@ -412,13 +434,17 @@ graph LR
 
 ### Repository-Level Secrets
 
-| Secret              | Description                                                               | Used By       |
-| ------------------- | ------------------------------------------------------------------------- | ------------- |
-| `AZURE_CREDENTIALS` | Service principal JSON (clientId, clientSecret, tenantId, subscriptionId) | All workflows |
-| `ACR_LOGIN_SERVER`  | ACR login URL (shared across environments)                                | Build & Push  |
-| `ACR_USERNAME`      | ACR admin username                                                        | Build & Push  |
-| `ACR_PASSWORD`      | ACR admin password                                                        | Build & Push  |
-| `GH_TOKEN`          | GitHub PAT with `repo` scope (for automated secrets sync)                 | Terraform     |
+| Secret                  | Description                                               | Used By       |
+| ----------------------- | --------------------------------------------------------- | ------------- |
+| `AZURE_CLIENT_ID`       | Azure AD app registration client ID (OIDC authentication) | All workflows |
+| `AZURE_TENANT_ID`       | Azure AD tenant ID                                        | All workflows |
+| `AZURE_SUBSCRIPTION_ID` | Azure subscription ID                                     | All workflows |
+| `ACR_LOGIN_SERVER`      | ACR login URL (shared across environments)                | Build & Push  |
+| `ACR_USERNAME`          | ACR admin username                                        | Build & Push  |
+| `ACR_PASSWORD`          | ACR admin password                                        | Build & Push  |
+| `GH_TOKEN`              | GitHub PAT with `repo` scope (for automated secrets sync) | Terraform     |
+
+> **Note:** Authentication uses OIDC federated credentials (no client secrets). The Azure AD app registration `octoeshop-github-actions` has federated credentials configured for the `main` branch, pull requests, and all three GitHub environments (dev, staging, production).
 
 ### Environment-Scoped Secrets
 
