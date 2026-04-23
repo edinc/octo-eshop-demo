@@ -21,6 +21,7 @@ resource "azurerm_storage_account" "main" {
   allow_nested_items_to_be_public = false
   shared_access_key_enabled       = true
   default_to_oauth_authentication = true
+  public_network_access_enabled   = true
 
   blob_properties {
     versioning_enabled = true
