@@ -29,7 +29,7 @@ permissions:
   contents: read
 
 jobs:
-  # On push: plan all environments to validate changes
+  # On push: plan then apply progressively (dev → staging → production)
   plan-dev:
     name: 📋 Plan Dev
     if: github.event_name == 'push'
@@ -39,8 +39,19 @@ jobs:
       action: plan
     secrets: inherit
 
+  apply-dev:
+    name: 🚀 Apply Dev
+    needs: plan-dev
+    if: github.event_name == 'push'
+    uses: ./.github/workflows/terraform-deploy.yml
+    with:
+      environment: dev
+      action: apply
+    secrets: inherit
+
   plan-staging:
     name: 📋 Plan Staging
+    needs: apply-dev
     if: github.event_name == 'push'
     uses: ./.github/workflows/terraform-deploy.yml
     with:
@@ -48,13 +59,34 @@ jobs:
       action: plan
     secrets: inherit
 
+  apply-staging:
+    name: 🚀 Apply Staging
+    needs: plan-staging
+    if: github.event_name == 'push'
+    uses: ./.github/workflows/terraform-deploy.yml
+    with:
+      environment: staging
+      action: apply
+    secrets: inherit
+
   plan-production:
     name: 📋 Plan Production
+    needs: apply-staging
     if: github.event_name == 'push'
     uses: ./.github/workflows/terraform-deploy.yml
     with:
       environment: production
       action: plan
+    secrets: inherit
+
+  apply-production:
+    name: 🚀 Apply Production
+    needs: plan-production
+    if: github.event_name == 'push'
+    uses: ./.github/workflows/terraform-deploy.yml
+    with:
+      environment: production
+      action: apply
     secrets: inherit
 
   # On dispatch: run against selected environment
