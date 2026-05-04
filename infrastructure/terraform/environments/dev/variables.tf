@@ -46,6 +46,60 @@ variable "redis_subnet_prefix" {
   default     = ["10.0.3.0/24"]
 }
 
+variable "enable_point_to_site_vpn" {
+  description = "Enable dev Point-to-Site VPN for private Codespaces access"
+  type        = bool
+  default     = false
+}
+
+variable "gateway_subnet_prefix" {
+  description = "Address prefix for the dev VPN GatewaySubnet"
+  type        = list(string)
+  default     = ["10.0.254.0/27"]
+}
+
+variable "p2s_dns_resolver_subnet_prefix" {
+  description = "Address prefix for the dev Private DNS Resolver inbound endpoint subnet"
+  type        = list(string)
+  default     = ["10.0.253.0/28"]
+}
+
+variable "p2s_dns_resolver_inbound_private_ip" {
+  description = "Static private IP for the dev Private DNS Resolver inbound endpoint"
+  type        = string
+  default     = "10.0.253.4"
+}
+
+variable "p2s_vpn_client_address_space" {
+  description = "Address space assigned to dev Point-to-Site VPN clients"
+  type        = list(string)
+  default     = ["172.31.250.0/24"]
+}
+
+variable "p2s_vpn_gateway_sku" {
+  description = "Dev Point-to-Site VPN gateway SKU"
+  type        = string
+  default     = "VpnGw1"
+}
+
+variable "p2s_vpn_gateway_generation" {
+  description = "Dev Point-to-Site VPN gateway generation"
+  type        = string
+  default     = "Generation1"
+}
+
+variable "p2s_vpn_root_certificate_name" {
+  description = "Name assigned to the trusted dev Point-to-Site VPN root certificate"
+  type        = string
+  default     = "codespaces-dev-root"
+}
+
+variable "p2s_vpn_root_certificate_public_data" {
+  description = "Base64 public root certificate data for dev Point-to-Site VPN clients"
+  type        = string
+  default     = ""
+}
+
 variable "kubernetes_version" {
   description = "Kubernetes version for AKS"
   type        = string

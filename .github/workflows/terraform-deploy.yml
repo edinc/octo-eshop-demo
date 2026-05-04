@@ -46,6 +46,14 @@ jobs:
           echo "ARM_TENANT_ID=${{ secrets.AZURE_TENANT_ID }}" >> $GITHUB_ENV
           echo "ARM_SUBSCRIPTION_ID=${{ secrets.AZURE_SUBSCRIPTION_ID }}" >> $GITHUB_ENV
           echo "ARM_USE_OIDC=true" >> $GITHUB_ENV
+          if [ "${{ inputs.environment }}" = "dev" ]; then
+            echo "TF_VAR_enable_point_to_site_vpn=${{ vars.DEV_ENABLE_POINT_TO_SITE_VPN || 'false' }}" >> "$GITHUB_ENV"
+            {
+              echo "TF_VAR_p2s_vpn_root_certificate_public_data<<EOF"
+              echo "${{ secrets.DEV_P2S_VPN_ROOT_CERTIFICATE_PUBLIC_DATA }}"
+              echo "EOF"
+            } >> "$GITHUB_ENV"
+          fi
 
       - name: Terraform Init
         run: terraform init

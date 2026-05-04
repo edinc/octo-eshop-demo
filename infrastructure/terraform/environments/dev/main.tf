@@ -24,15 +24,24 @@ resource "azurerm_resource_group" "main" {
 module "networking" {
   source = "../../modules/networking"
 
-  project_name           = var.project_name
-  environment            = var.environment
-  location               = var.location
-  resource_group_name    = azurerm_resource_group.main.name
-  vnet_address_space     = var.vnet_address_space
-  aks_subnet_prefix      = var.aks_subnet_prefix
-  database_subnet_prefix = var.database_subnet_prefix
-  redis_subnet_prefix    = var.redis_subnet_prefix
-  tags                   = local.common_tags
+  project_name                         = var.project_name
+  environment                          = var.environment
+  location                             = var.location
+  resource_group_name                  = azurerm_resource_group.main.name
+  vnet_address_space                   = var.vnet_address_space
+  aks_subnet_prefix                    = var.aks_subnet_prefix
+  database_subnet_prefix               = var.database_subnet_prefix
+  redis_subnet_prefix                  = var.redis_subnet_prefix
+  enable_point_to_site_vpn             = var.enable_point_to_site_vpn
+  gateway_subnet_prefix                = var.gateway_subnet_prefix
+  p2s_dns_resolver_subnet_prefix       = var.p2s_dns_resolver_subnet_prefix
+  p2s_dns_resolver_inbound_private_ip  = var.p2s_dns_resolver_inbound_private_ip
+  p2s_vpn_client_address_space         = var.p2s_vpn_client_address_space
+  p2s_vpn_gateway_sku                  = var.p2s_vpn_gateway_sku
+  p2s_vpn_gateway_generation           = var.p2s_vpn_gateway_generation
+  p2s_vpn_root_certificate_name        = var.p2s_vpn_root_certificate_name
+  p2s_vpn_root_certificate_public_data = var.p2s_vpn_root_certificate_public_data
+  tags                                 = local.common_tags
 }
 
 module "monitoring" {

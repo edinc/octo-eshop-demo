@@ -14,6 +14,7 @@ services/frontend/test-results/
 .env
 .env.local
 .env.*.local
+.vpn/
 
 # IDE
 .idea/

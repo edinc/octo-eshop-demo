@@ -38,3 +38,19 @@ output "application_insights_connection_string" {
 output "kube_config_command" {
   value = "az aks get-credentials --resource-group ${azurerm_resource_group.main.name} --name ${module.aks.cluster_name}"
 }
+
+output "p2s_vpn_gateway_name" {
+  value = module.networking.p2s_vpn_gateway_name
+}
+
+output "p2s_vpn_client_address_space" {
+  value = module.networking.p2s_vpn_client_address_space
+}
+
+output "p2s_dns_resolver_inbound_ip" {
+  value = module.networking.p2s_dns_resolver_inbound_ip
+}
+
+output "p2s_vpn_dns_servers" {
+  value = module.networking.p2s_vpn_dns_servers
+}

@@ -100,6 +100,7 @@ octo-eshop-demo/
 | [📖 Demo Site](https://edinc.github.io/octo-eshop-demo/) | Interactive Copilot demo guides and presenter resources |
 | [Azure Architecture](docs/azure-architecture.md)         | Infrastructure design, Azure services, network topology |
 | [CI/CD Pipeline](docs/cicd-pipeline.md)                  | Workflows, deployment strategy, operational runbook     |
+| [Dev Codespaces VPN](docs/dev-codespaces-vpn.md)         | Private dev PostgreSQL access from GitHub Codespaces    |
 
 ## License
 

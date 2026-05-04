@@ -43,6 +43,22 @@ resource "azurerm_network_security_group" "database" {
     destination_address_prefix = "*"
   }
 
+  dynamic "security_rule" {
+    for_each = var.enable_point_to_site_vpn ? [1] : []
+
+    content {
+      name                       = "AllowPostgreSQLFromP2SVPN"
+      priority                   = 110
+      direction                  = "Inbound"
+      access                     = "Allow"
+      protocol                   = "Tcp"
+      source_port_range          = "*"
+      destination_port_range     = "5432"
+      source_address_prefixes    = var.p2s_vpn_client_address_space
+      destination_address_prefix = "*"
+    }
+  }
+
   security_rule {
     name                       = "DenyAllInbound"
     priority                   = 4096
