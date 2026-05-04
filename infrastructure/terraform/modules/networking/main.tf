@@ -108,6 +108,8 @@ resource "azurerm_subnet" "aks" {
   resource_group_name  = var.resource_group_name
   virtual_network_name = azurerm_virtual_network.main.name
   address_prefixes     = var.aks_subnet_prefix
+
+  default_outbound_access_enabled = false
 }
 
 resource "azurerm_subnet" "database" {
@@ -115,6 +117,8 @@ resource "azurerm_subnet" "database" {
   resource_group_name  = var.resource_group_name
   virtual_network_name = azurerm_virtual_network.main.name
   address_prefixes     = var.database_subnet_prefix
+
+  default_outbound_access_enabled = false
 
   delegation {
     name = "postgresql-flexible-server"
@@ -131,6 +135,8 @@ resource "azurerm_subnet" "redis" {
   resource_group_name  = var.resource_group_name
   virtual_network_name = azurerm_virtual_network.main.name
   address_prefixes     = var.redis_subnet_prefix
+
+  default_outbound_access_enabled = false
 }
 
 resource "azurerm_subnet_network_security_group_association" "aks" {

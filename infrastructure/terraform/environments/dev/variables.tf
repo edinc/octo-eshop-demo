@@ -79,7 +79,7 @@ variable "p2s_vpn_client_address_space" {
 variable "p2s_vpn_gateway_sku" {
   description = "Dev Point-to-Site VPN gateway SKU"
   type        = string
-  default     = "VpnGw1"
+  default     = "VpnGw1AZ"
 }
 
 variable "p2s_vpn_gateway_generation" {

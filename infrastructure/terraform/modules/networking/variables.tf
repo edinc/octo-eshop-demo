@@ -59,7 +59,7 @@ variable "p2s_vpn_client_address_space" {
 variable "p2s_vpn_gateway_sku" {
   description = "Azure VPN gateway SKU for Point-to-Site access"
   type        = string
-  default     = "VpnGw1"
+  default     = "VpnGw1AZ"
 }
 
 variable "p2s_vpn_gateway_generation" {

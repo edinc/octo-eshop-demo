@@ -22,6 +22,8 @@ resource "azurerm_subnet" "gateway" {
   resource_group_name  = var.resource_group_name
   virtual_network_name = azurerm_virtual_network.main.name
   address_prefixes     = var.gateway_subnet_prefix
+
+  default_outbound_access_enabled = false
 }
 
 resource "azurerm_subnet" "dns_resolver_inbound" {
@@ -31,6 +33,8 @@ resource "azurerm_subnet" "dns_resolver_inbound" {
   resource_group_name  = var.resource_group_name
   virtual_network_name = azurerm_virtual_network.main.name
   address_prefixes     = var.p2s_dns_resolver_subnet_prefix
+
+  default_outbound_access_enabled = false
 
   delegation {
     name = "dns-resolver"
@@ -50,6 +54,7 @@ resource "azurerm_public_ip" "vpn_gateway" {
   resource_group_name = var.resource_group_name
   allocation_method   = "Static"
   sku                 = "Standard"
+  zones               = ["1", "2", "3"]
   tags                = var.tags
 }
 
@@ -139,23 +144,4 @@ resource "azurerm_virtual_network_gateway" "p2s" {
       error_message = "p2s_vpn_root_certificate_public_data must be set to the base64 public root certificate before planning or applying Point-to-Site VPN."
     }
   }
-}
-
-resource "azapi_update_resource" "p2s_dns_servers" {
-  count = local.p2s_vpn_enabled ? 1 : 0
-
-  type        = "Microsoft.Network/virtualNetworkGateways@2024-05-01"
-  resource_id = azurerm_virtual_network_gateway.p2s[0].id
-
-  body = {
-    properties = {
-      vpnClientConfiguration = {
-        dnsServers = [
-          azurerm_private_dns_resolver_inbound_endpoint.p2s[0].ip_configurations[0].private_ip_address,
-        ]
-      }
-    }
-  }
-
-  depends_on = [azurerm_virtual_network_gateway.p2s]
 }
