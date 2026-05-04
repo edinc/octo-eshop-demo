@@ -789,10 +789,10 @@
     {
       "id": "arrow-dns-zone",
       "type": "arrow",
-      "x": 1240,
-      "y": 285,
-      "width": 0,
-      "height": 270,
+      "x": 1380,
+      "y": 232,
+      "width": 55,
+      "height": 358,
       "angle": 0,
       "strokeColor": "#7048e8",
       "backgroundColor": "transparent",
@@ -814,7 +814,9 @@
       "locked": false,
       "points": [
         [0, 0],
-        [0, 270]
+        [55, 0],
+        [55, 358],
+        [20, 358]
       ],
       "lastCommittedPoint": null,
       "startBinding": null,
