@@ -4,7 +4,9 @@ The dev PostgreSQL Flexible Servers are private-only. GitHub Codespaces cannot r
 
 ## Architecture
 
-Open the architecture diagram in [dev-codespaces-vpn-architecture.excalidraw](dev-codespaces-vpn-architecture.excalidraw) with Excalidraw or the VS Code Excalidraw extension.
+![Dev Codespaces VPN architecture](diagrams/dev-codespaces-vpn-architecture.png)
+
+Open the editable architecture diagram in [diagrams/dev-codespaces-vpn-architecture.excalidraw](diagrams/dev-codespaces-vpn-architecture.excalidraw) with Excalidraw or the VS Code Excalidraw extension.
 
 The high-level flow is:
 
