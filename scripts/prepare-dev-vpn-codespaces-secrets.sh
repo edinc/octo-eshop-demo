@@ -111,7 +111,7 @@ PROFILE_SOURCE="$(find "$PROFILE_EXTRACT_DIR" -type f -name '*vpnconfig.ovpn' -p
 cp "$PROFILE_SOURCE" "$BASE_PROFILE"
 [ -s "$BASE_PROFILE" ] || fail "Extracted Azure OpenVPN profile is empty"
 
-grep -vE '^(cert|key|dhcp-option DNS) ' "$BASE_PROFILE" > "$CODESPACES_PROFILE"
+grep -vE '^(cert|key|dhcp-option DNS|log|log-append|status|writepid)( |$)' "$BASE_PROFILE" > "$CODESPACES_PROFILE"
 printf '\ndhcp-option DNS %s\n' "$DNS_SERVER" >> "$CODESPACES_PROFILE"
 
 echo "Setting Codespaces VPN secrets..."

@@ -49,6 +49,16 @@ remove_hosts_block() {
   rm -f "$tmp_hosts"
 }
 
+ensure_tun_device() {
+  if [ ! -e /dev/net/tun ]; then
+    sudo mkdir -p /dev/net
+    sudo mknod /dev/net/tun c 10 200 2>/dev/null || true
+    sudo chmod 600 /dev/net/tun 2>/dev/null || true
+  fi
+
+  [ -c /dev/net/tun ] || fail "OpenVPN requires /dev/net/tun, but this Codespace does not expose a TUN device. GitHub-hosted Codespaces may block the kernel device/capability required for VPN clients."
+}
+
 add_postgres_hosts() {
   local hosts=()
   local host
@@ -98,7 +108,7 @@ decode_secret DEV_P2S_VPN_CLIENT_CERT_B64 "$CLIENT_CERT"
 decode_secret DEV_P2S_VPN_CLIENT_KEY_B64 "$CLIENT_KEY"
 chmod 600 "$CLIENT_KEY"
 
-grep -vE '^(cert|key|dhcp-option DNS) ' "$PROFILE" > "$PROFILE.tmp"
+grep -vE '^(cert|key|dhcp-option DNS|log|log-append|status|writepid)( |$)' "$PROFILE" > "$PROFILE.tmp"
 mv "$PROFILE.tmp" "$PROFILE"
 {
   printf '\ncert %s\n' "$(pwd)/$CLIENT_CERT"
@@ -106,9 +116,12 @@ mv "$PROFILE.tmp" "$PROFILE"
   printf 'dhcp-option DNS %s\n' "$DNS_SERVER"
 } >> "$PROFILE"
 
+ensure_tun_device
+
 if [ -f "$OPENVPN_PID" ] && sudo kill -0 "$(cat "$OPENVPN_PID")" 2>/dev/null; then
   echo "OpenVPN is already running with PID $(cat "$OPENVPN_PID")."
 else
+  rm -f "$OPENVPN_LOG"
   sudo openvpn \
     --config "$PROFILE" \
     --daemon \
@@ -118,6 +131,10 @@ fi
 
 sleep "${VPN_WAIT_SECONDS:-20}"
 tail -50 "$OPENVPN_LOG"
+
+if grep -Eq 'Cannot open TUN/TAP|TUNSETIFF|Operation not permitted' "$OPENVPN_LOG"; then
+  fail "OpenVPN reached the Azure gateway but could not create the local TUN device. This Codespace is missing the kernel device or NET_ADMIN capability required by OpenVPN."
+fi
 
 grep -q 'Initialization Sequence Completed' "$OPENVPN_LOG" || fail "OpenVPN did not complete initialization. See $OPENVPN_LOG."
 

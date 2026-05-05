@@ -127,6 +127,8 @@ Run the connection helper:
 
 The helper decodes the Codespaces secrets into `.vpn/dev-p2s/`, writes a Codespaces-specific OpenVPN profile, starts OpenVPN, checks for `Initialization Sequence Completed`, resolves the dev PostgreSQL hostnames through `10.0.253.4`, and adds a temporary managed block to `/etc/hosts` so normal PostgreSQL tools use the private IPs.
 
+OpenVPN requires a Linux TUN device. The helper creates `/dev/net/tun` when the container permits it and strips Azure profile `log`, `status`, and `writepid` directives so logs stay under `.vpn/dev-p2s/openvpn.log`. If the helper reports that the TUN device or `NET_ADMIN` capability is unavailable, that GitHub-hosted Codespace cannot run an OpenVPN Point-to-Site client. Use a local dev container or VM with TUN/NET_ADMIN enabled for this VPN path, or switch the architecture to a Codespaces-supported private-networking option such as GitHub Codespaces Azure private networking or an SSH bastion/tunnel.
+
 Do not commit files under `.vpn/`.
 
 ### 4. Verify private DNS and PostgreSQL TCP access
