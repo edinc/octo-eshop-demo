@@ -4,16 +4,37 @@ The dev PostgreSQL Flexible Servers are private-only. GitHub Codespaces cannot
 reach them directly over the public internet. This guide covers the supported
 private-network path and explains why earlier approaches were dropped.
 
-> **Status:** GitHub Codespaces VNet integration via
-> `GitHub.Network/networkSettings` is in **private preview** at the time of
-> writing (see GitHub roadmap [#534][roadmap]). The Azure-side scaffold this
-> document deploys works today, but joining a Codespace to that network requires
-> the GitHub organization to be enrolled in the preview and to attach a
-> Codespaces network configuration. The same Azure resource is also used by
-> GitHub-hosted Actions runner private networking, which is GA. Once your org
-> is enrolled the same scaffold supports either consumer.
+## Will this work in a Codespace today?
+
+> **Short answer: end-to-end, no — not on `codecurrent-sandbox`.**
+> The Azure-side scaffold in this repo is correct and deployable today, but the
+> step that actually attaches a Codespace to that VNet (creating a
+> **Codespaces** network configuration that points at the
+> `GitHub.Network/networkSettings` resource) is gated behind a GitHub-side
+> private preview that this repo's account is not enrolled in.
+
+Concretely:
+
+| Layer                                                                           | Status today                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| ------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Azure resource provider `GitHub.Network`                                        | **GA** — registers and accepts the resource.                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| `GitHub.Network/networkSettings@2024-04-02` Terraform scaffold                  | **GA** — applies cleanly with `enable_hosted_compute_private_networking = true`.                                                                                                                                                                                                                                                                                                                                                                                              |
+| GitHub-hosted **Actions runner** network configuration pointing at the resource | **GA** — [docs][runner-docs]. Wire this up today and Actions runs will reach private dev PostgreSQL.                                                                                                                                                                                                                                                                                                                                                                          |
+| GitHub **Codespaces** network configuration pointing at the resource            | **Private preview** — [GitHub roadmap #534][roadmap], titled _"Codespaces: Private networking with Azure VNETs (Preview)"_. The card states _"This functionality will be supported for the GitHub Enterprise Cloud plan."_ The public Codespaces docs at [Connecting to a private network][codespaces-pn-docs] still list only the deprecated `gh net` bridge and customer-supplied VPN/Tailscale as supported options for ordinary Codespaces customers — VNet is not there. |
+
+So the practical deliverable today is:
+
+- A correct Azure scaffold that an enterprise admin enrolled in the preview can
+  hook a Codespaces network configuration to.
+- An immediate working path for **Actions runners** if you want CI/CD to talk
+  to the private dev databases.
+- For day-to-day **hosted Codespaces** development against the private DBs,
+  this path does not yet work without preview enrollment. Treat this doc as
+  the runbook for the moment that changes.
 
 [roadmap]: https://github.com/github/roadmap/issues/534
+[runner-docs]: https://docs.github.com/en/enterprise-cloud@latest/admin/configuring-settings/configuring-private-networking-for-hosted-compute-products/about-azure-private-networking-for-github-hosted-runners-in-your-enterprise
+[codespaces-pn-docs]: https://docs.github.com/en/codespaces/developing-in-a-codespace/connecting-to-a-private-network
 
 ## Why not OpenVPN Point-to-Site?
 
