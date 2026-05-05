@@ -1,8 +1,8 @@
 # Octo E-Shop 🚲
 
-[![🔍 CI Pipeline](https://github.com/edinc/octo-eshop-demo/actions/workflows/ci.yml/badge.svg)](https://github.com/edinc/octo-eshop-demo/actions/workflows/ci.yml)
-[![🐳 Build and Push Images](https://github.com/edinc/octo-eshop-demo/actions/workflows/build-push.yml/badge.svg)](https://github.com/edinc/octo-eshop-demo/actions/workflows/build-push.yml)
-[![🚀 Deploy to Environment](https://github.com/edinc/octo-eshop-demo/actions/workflows/deploy.yml/badge.svg)](https://github.com/edinc/octo-eshop-demo/actions/workflows/deploy.yml)
+[![🔍 CI Pipeline](https://github.com/codecurrent-sandbox/octo-eshop-demo/actions/workflows/ci.yml/badge.svg)](https://github.com/codecurrent-sandbox/octo-eshop-demo/actions/workflows/ci.yml)
+[![🐳 Build and Push Images](https://github.com/codecurrent-sandbox/octo-eshop-demo/actions/workflows/build-push.yml/badge.svg)](https://github.com/codecurrent-sandbox/octo-eshop-demo/actions/workflows/build-push.yml)
+[![🚀 Deploy to Environment](https://github.com/codecurrent-sandbox/octo-eshop-demo/actions/workflows/deploy.yml/badge.svg)](https://github.com/codecurrent-sandbox/octo-eshop-demo/actions/workflows/deploy.yml)
 
 A bicycle e-commerce platform built with microservices architecture, deployed on Azure Kubernetes Service.
 
@@ -33,7 +33,7 @@ A bicycle e-commerce platform built with microservices architecture, deployed on
 
 ### GitHub Codespaces (recommended)
 
-[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/edinc/octo-eshop-demo)
+[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/codecurrent-sandbox/octo-eshop-demo)
 
 The devcontainer provides a ready-to-code environment with all tools and extensions pre-installed. Once the container is ready:
 
