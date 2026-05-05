@@ -33,6 +33,13 @@ module "networking" {
   database_subnet_prefix = var.database_subnet_prefix
   redis_subnet_prefix    = var.redis_subnet_prefix
   tags                   = local.common_tags
+
+  # When the Codespaces OpenVPN tunnel is enabled, allow inbound 5432 from
+  # the P2S client address pool. Wired through the networking module so the
+  # rule is managed inline alongside the existing AllowPostgreSQLFromAKS /
+  # DenyAllInbound rules - mixing inline + standalone NSG rules on one NSG
+  # causes perpetual drift.
+  database_additional_allow_postgres_source_cidrs = var.enable_dev_codespaces_openvpn ? [var.codespaces_vpn_client_address_pool] : []
 }
 
 module "monitoring" {
@@ -215,4 +222,21 @@ resource "azurerm_key_vault_secret" "jwt_secret" {
   value        = random_password.jwt_secret.result
   key_vault_id = module.keyvault.key_vault_id
   depends_on   = [module.keyvault]
+}
+
+module "codespaces_vpn" {
+  source = "../../modules/codespaces_vpn"
+
+  enabled                      = var.enable_dev_codespaces_openvpn
+  project_name                 = var.project_name
+  environment                  = var.environment
+  location                     = var.location
+  resource_group_name          = azurerm_resource_group.main.name
+  virtual_network_name         = module.networking.vnet_name
+  gateway_subnet_prefix        = var.codespaces_vpn_gateway_subnet_prefix
+  vpn_client_address_pool      = var.codespaces_vpn_client_address_pool
+  gateway_sku                  = var.codespaces_vpn_gateway_sku
+  gateway_generation           = var.codespaces_vpn_gateway_generation
+  root_certificate_public_data = var.codespaces_vpn_root_certificate_public_data
+  tags                         = local.common_tags
 }

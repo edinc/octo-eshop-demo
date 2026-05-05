@@ -1,6 +1,12 @@
 {
   "name": "Octo E-Shop",
-  "image": "mcr.microsoft.com/devcontainers/typescript-node:20",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "args": {
+      "VARIANT": "20"
+    }
+  },
+  "runArgs": ["--cap-add=NET_ADMIN", "--device=/dev/net/tun"],
   "features": {
     "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {
       "moby": false
@@ -74,6 +80,6 @@
     "8080": { "label": "API Gateway (Kong)", "onAutoForward": "notify" }
   },
   "postCreateCommand": "npm install && npx husky",
-  "postStartCommand": "echo '✅ Octo E-Shop devcontainer ready. Start databases with: docker-compose up -d'",
+  "postStartCommand": "bash ./.devcontainer/postcreate/install-dev-tools.sh",
   "remoteUser": "node"
 }
