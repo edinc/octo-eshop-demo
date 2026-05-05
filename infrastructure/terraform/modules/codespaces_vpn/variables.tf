@@ -47,13 +47,13 @@ variable "vpn_client_address_pool" {
 }
 
 variable "gateway_sku" {
-  description = "Virtual Network Gateway SKU. Basic does not support OpenVPN; the smallest SKU that does is VpnGw1."
+  description = "Virtual Network Gateway SKU. Basic does not support OpenVPN; the smallest SKU that does is VpnGw1AZ. As of 2026 Azure no longer accepts new non-AZ VPN Gateways (NonAzSkusNotAllowedForVPNGateway), so only the *AZ variants are valid."
   type        = string
-  default     = "VpnGw1"
+  default     = "VpnGw1AZ"
 
   validation {
-    condition     = contains(["VpnGw1", "VpnGw2", "VpnGw3", "VpnGw1AZ", "VpnGw2AZ", "VpnGw3AZ"], var.gateway_sku)
-    error_message = "gateway_sku must be one of the SKUs that support OpenVPN P2S (VpnGw1+ or their AZ variants)."
+    condition     = contains(["VpnGw1AZ", "VpnGw2AZ", "VpnGw3AZ"], var.gateway_sku)
+    error_message = "gateway_sku must be one of the AZ SKUs that support OpenVPN P2S (VpnGw1AZ, VpnGw2AZ, VpnGw3AZ). Non-AZ SKUs (VpnGw1/2/3) are no longer accepted by Azure for new VPN gateways."
   }
 }
 

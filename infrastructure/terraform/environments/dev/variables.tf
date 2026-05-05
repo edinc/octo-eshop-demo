@@ -118,7 +118,7 @@ variable "servicebus_sku" {
 # --------------------------------------------------------------------------- #
 
 variable "enable_dev_codespaces_openvpn" {
-  description = "Master flag for the OpenVPN P2S codespaces tunnel. The Virtual Network Gateway it provisions is the most expensive resource in this environment (~USD 140/month for VpnGw1) and takes 30-45 minutes to apply or destroy. Default false; flip on while you actively need the tunnel and back off when finished."
+  description = "Master flag for the OpenVPN P2S codespaces tunnel. The Virtual Network Gateway it provisions is the most expensive resource in this environment (~USD 140/month for VpnGw1AZ) and takes 30-45 minutes to apply or destroy. Default false; flip on while you actively need the tunnel and back off when finished."
   type        = bool
   default     = false
 }
@@ -136,13 +136,13 @@ variable "codespaces_vpn_client_address_pool" {
 }
 
 variable "codespaces_vpn_gateway_sku" {
-  description = "Virtual Network Gateway SKU. Must support OpenVPN (Basic does not). Default VpnGw1 is the cheapest supported SKU."
+  description = "Virtual Network Gateway SKU. Must support OpenVPN (Basic does not). Default VpnGw1AZ is the cheapest supported SKU; Azure deprecated non-AZ VPN Gateways in 2026 (NonAzSkusNotAllowedForVPNGateway) so only the *AZ variants are accepted now."
   type        = string
-  default     = "VpnGw1"
+  default     = "VpnGw1AZ"
 }
 
 variable "codespaces_vpn_gateway_generation" {
-  description = "Gateway generation (Generation1 or Generation2). Generation1 is required for non-AZ VpnGw1/2/3."
+  description = "Gateway hardware generation. Generation1 is the right value for VpnGw1AZ. Generation2 is only valid in combination with VpnGw2AZ or VpnGw3AZ."
   type        = string
   default     = "Generation1"
 }

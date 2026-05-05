@@ -32,7 +32,7 @@ TERRAFORM_DIR="${REPO_ROOT}/infrastructure/terraform/environments/dev"
 SECRETS_DIR="${REPO_ROOT}/codespaces-vpn-secrets"
 CLIENT_PEM="${SECRETS_DIR}/azure-vpn-client.pem"
 
-for cmd in az terraform jq unzip curl openssl; do
+for cmd in az terraform jq unzip curl openssl python3; do
     if ! command -v "$cmd" >/dev/null 2>&1; then
         echo "❌ Required command '$cmd' is not on PATH." >&2
         exit 1
@@ -81,7 +81,15 @@ WORKDIR="$(mktemp -d)"
 trap 'rm -rf "${WORKDIR}"' EXIT
 
 curl -fsSL "${ZIP_URL}" -o "${WORKDIR}/vpnclient.zip"
-unzip -q "${WORKDIR}/vpnclient.zip" -d "${WORKDIR}/vpnclient"
+# unzip exits 1 for non-fatal warnings (macOS unzip surfaces a backslash-path
+# warning on the Azure-generated zip even though extraction succeeds). Treat
+# only exit codes >=2 as real errors.
+unzip_status=0
+unzip -q "${WORKDIR}/vpnclient.zip" -d "${WORKDIR}/vpnclient" || unzip_status=$?
+if (( unzip_status >= 2 )); then
+    echo "❌ unzip failed with exit code ${unzip_status}." >&2
+    exit "${unzip_status}"
+fi
 
 OVPN_TEMPLATE="${WORKDIR}/vpnclient/OpenVPN/vpnconfig.ovpn"
 if [[ ! -s "${OVPN_TEMPLATE}" ]]; then
@@ -102,16 +110,27 @@ if [[ -z "${CLIENT_CERT_BLOCK}" || -z "${CLIENT_KEY_BLOCK}" ]]; then
     exit 1
 fi
 
-# Splice in cert and key, replacing the literal $CLIENTCERTIFICATE and
-# $PRIVATEKEY placeholders. awk is used so the multi-line cert/key is
-# inserted verbatim without sed-style escaping pitfalls.
-FINAL_OVPN="$(awk -v cert="${CLIENT_CERT_BLOCK}" -v key="${CLIENT_KEY_BLOCK}" '
-    {
-        gsub(/\$CLIENTCERTIFICATE/, cert)
-        gsub(/\$PRIVATEKEY/,        key)
-        print
-    }
-' "${OVPN_TEMPLATE}")"
+# Splice cert + key into the .ovpn template. Done in Python instead of awk/sed
+# because BSD awk on macOS rejects multi-line -v variables; python3 is
+# available on both macOS (xcode-select) and the Debian-based devcontainer.
+CERT_FILE="${WORKDIR}/cert.pem"
+KEY_FILE="${WORKDIR}/key.pem"
+printf '%s' "${CLIENT_CERT_BLOCK}" >"${CERT_FILE}"
+printf '%s' "${CLIENT_KEY_BLOCK}" >"${KEY_FILE}"
+
+FINAL_OVPN="$(python3 - "${OVPN_TEMPLATE}" "${CERT_FILE}" "${KEY_FILE}" <<'PY'
+import sys
+template_path, cert_path, key_path = sys.argv[1], sys.argv[2], sys.argv[3]
+with open(template_path) as f:
+    text = f.read()
+with open(cert_path) as f:
+    cert = f.read()
+with open(key_path) as f:
+    key = f.read()
+text = text.replace("$CLIENTCERTIFICATE", cert).replace("$PRIVATEKEY", key)
+sys.stdout.write(text)
+PY
+)"
 
 # Defensive check: if Azure ever changes placeholder names, fail loudly
 # rather than silently emit a broken profile.

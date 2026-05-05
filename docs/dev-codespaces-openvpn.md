@@ -34,7 +34,7 @@ locally, paste a Codespaces secret, rebuild the codespace.
                                │ (certificate auth)
                                ▼
               ┌──────────────────────────────────────┐
-              │ Azure VPN Gateway (VpnGw1, P2S)      │
+              │ Azure VPN Gateway (VpnGw1AZ, P2S)    │
               │   public IP: <gateway_public_ip>     │
               │   client pool: 172.16.201.0/24       │
               │   OpenVPN tunnel type, cert auth     │
@@ -59,17 +59,18 @@ locally, paste a Codespaces secret, rebuild the codespace.
 
 All gated by `var.enable_dev_codespaces_openvpn` (default `false`).
 
-| Resource (Terraform)                                                                | Purpose                                                                                                                                                     |
-| ----------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `azurerm_subnet.gateway` (`GatewaySubnet`, `10.0.255.0/27`)                         | Azure-mandated dedicated subnet for the gateway. Name must be exactly `GatewaySubnet`.                                                                      |
-| `azurerm_public_ip.gateway` (Standard, Static; zonal only when SKU ends in `AZ`)    | Public endpoint for OpenVPN clients to reach. Zones are set automatically based on `gateway_sku`: regional for `VpnGw1/2/3`, zone-redundant for `*AZ`.      |
-| `azurerm_virtual_network_gateway.main` (`VpnGw1`, `Generation1`, `RouteBased`)      | The P2S gateway. `vpn_client_configuration` enables OpenVPN tunnel type, certificate auth, address pool, and trusted root cert.                             |
-| `security_rule "AllowPostgreSQLFromAdditionalSources"` (inside `module.networking`) | Allow tcp/5432 from `172.16.201.0/24`. Priority `110`, between the AKS allow (100) and deny-all (4096). Managed inline alongside the existing DB NSG rules. |
-| Outputs (`environments/dev`)                                                        | `codespaces_vpn_gateway_name`, `codespaces_vpn_gateway_public_ip`, `codespaces_vpn_client_address_pool`, `*_db_fqdn`, etc.                                  |
+| Resource (Terraform)                                                                | Purpose                                                                                                                                                                                                                                                   |
+| ----------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `azurerm_subnet.gateway` (`GatewaySubnet`, `10.0.255.0/27`)                         | Azure-mandated dedicated subnet for the gateway. Name must be exactly `GatewaySubnet`.                                                                                                                                                                    |
+| `azurerm_public_ip.gateway` (Standard, Static; zonal only when SKU ends in `AZ`)    | Public endpoint for OpenVPN clients to reach. Zones are set automatically based on `gateway_sku`: regional for non-AZ SKUs, zone-redundant for `*AZ`. Since Azure deprecated non-AZ VPN Gateway SKUs in 2026, in practice this is always `["1","2","3"]`. |
+| `azurerm_virtual_network_gateway.main` (`VpnGw1AZ`, `Generation1`, `RouteBased`)    | The P2S gateway. `vpn_client_configuration` enables OpenVPN tunnel type, certificate auth, address pool, and trusted root cert. Azure no longer accepts non-AZ SKUs (`NonAzSkusNotAllowedForVPNGateway`); only `VpnGw{1,2,3}AZ` are valid.                |
+| `security_rule "AllowPostgreSQLFromAdditionalSources"` (inside `module.networking`) | Allow tcp/5432 from `172.16.201.0/24`. Priority `110`, between the AKS allow (100) and deny-all (4096). Managed inline alongside the existing DB NSG rules.                                                                                               |
+| Outputs (`environments/dev`)                                                        | `codespaces_vpn_gateway_name`, `codespaces_vpn_gateway_public_ip`, `codespaces_vpn_client_address_pool`, `*_db_fqdn`, etc.                                                                                                                                |
 
-The gateway is the dominant cost: **VpnGw1 is roughly USD 140 / month** at
-the time of writing. Basic SKU does not support OpenVPN, so VpnGw1 is the
-floor. Provisioning takes **30–45 minutes** and so does destroy, so flip
+The gateway is the dominant cost: **VpnGw1AZ is roughly USD 140 / month** at
+the time of writing. Basic SKU does not support OpenVPN, and Azure deprecated
+the non-AZ `VpnGw1/2/3` SKUs for new VPN Gateways in 2026, so `VpnGw1AZ` is
+the floor. Provisioning takes **20–45 minutes** and so does destroy, so flip
 `enable_dev_codespaces_openvpn` on/off deliberately.
 
 ## Files in this branch
@@ -94,10 +95,27 @@ floor. Provisioning takes **30–45 minutes** and so does destroy, so flip
   Virtual Network Gateway in the dev region (`swedencentral`).
 - `az` CLI signed in to the subscription (`az login`).
 - `terraform >= 1.5.0` (matches the rest of the repo).
-- `openssl`, `jq`, `unzip`, `curl`.
+- `openssl`, `jq`, `unzip`, `curl`, `python3`. (`python3` is used by
+  `scripts/build-codespaces-openvpn-config.sh` to splice the client cert/key
+  into the OpenVPN profile because BSD `awk` on macOS does not accept
+  multi-line `-v` variables.)
 - A GitHub account that can:
   - Add a Codespaces **user** secret (`OPENVPNCONFIG`).
   - Create / rebuild a Codespace on this fork.
+
+> **Heads-up: dev-environment data-plane drift.** Azure Policy on this
+> subscription periodically resets `publicNetworkAccess` to `Disabled` on
+> `octoeshopdevswkvhpxt5` (Key Vault) and `octoeshopdevar2lji` (blob storage)
+> even though Terraform declares them `Enabled`. If `terraform plan` from
+> your laptop fails reading KV secrets or storage containers, run
+> `az keyvault update --name octoeshopdevswkvhpxt5 --public-network-access Enabled`
+> and `az storage account update --name octoeshopdevar2lji --public-network-access Enabled`
+> first; the apply will reconcile them as part of the run. The state-file
+> storage account `octoeshoptfstate` is also locked down (`publicAccess=Disabled`);
+> if you need to apply from a network without private connectivity, temporarily
+> open it with `az storage account update --name octoeshoptfstate --public-network-access Enabled --default-action Deny` plus
+> `az storage account network-rule add --account-name octoeshoptfstate --ip-address <your IP>`,
+> and revert once the apply finishes.
 
 ## Manual local test flow (no CI/CD)
 
@@ -264,7 +282,7 @@ cost down — see [Future improvements](#future-improvements).
 
 ### 7. Tear down when done
 
-`VpnGw1` bills hourly. Tear it down as soon as you finish testing:
+`VpnGw1AZ` bills hourly. Tear it down as soon as you finish testing:
 
 ```bash
 cd infrastructure/terraform/environments/dev
@@ -313,16 +331,16 @@ different solution: GitHub-managed
 [hosted-compute private networking](https://docs.github.com/en/enterprise-cloud@latest/admin/configuring-settings/configuring-private-networking-for-hosted-compute-products/about-azure-private-networking-for-github-hosted-runners-in-your-enterprise)
 via `GitHub.Network/networkSettings`.
 
-| Dimension             | OpenVPN P2S (this branch)                                                                  | Hosted-compute private networking (sibling)                                                                        |
-| --------------------- | ------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------ |
-| Today's status        | Works in any GitHub plan that allows `runArgs` capability flags.                           | Works for hosted Actions runners now; **Codespaces** integration is a private preview not enabled on this account. |
-| Egress public IP      | A new Azure public IP attached to the VPN Gateway.                                         | None — traffic egresses to Azure across GitHub-managed peering.                                                    |
-| Codespace changes     | Custom Dockerfile, `--cap-add=NET_ADMIN`, `/dev/net/tun`, openvpn client.                  | None inside the Codespace; networking happens before user code runs.                                               |
-| Recurring Azure cost  | ~USD 140 / month for VpnGw1 (cheapest SKU that supports OpenVPN).                          | Just the delegated subnet + NSG; no gateway.                                                                       |
-| Provisioning time     | 30–45 min apply, 30–45 min destroy.                                                        | Minutes.                                                                                                           |
-| Auth                  | Self-signed root + per-user client cert.                                                   | Managed by GitHub via the org/enterprise network configuration.                                                    |
-| DNS for private FQDNs | Not solved by default — operator side-loads `/etc/hosts` or deploys an Azure DNS Resolver. | Same — needs Azure-side DNS strategy.                                                                              |
-| Client OS support     | Anywhere with OpenVPN ≥ 2.4 (with `disable-dco` for ≥ 2.6).                                | Only GitHub-hosted compute.                                                                                        |
+| Dimension             | OpenVPN P2S (this branch)                                                                                 | Hosted-compute private networking (sibling)                                                                        |
+| --------------------- | --------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| Today's status        | Works in any GitHub plan that allows `runArgs` capability flags.                                          | Works for hosted Actions runners now; **Codespaces** integration is a private preview not enabled on this account. |
+| Egress public IP      | A new Azure public IP attached to the VPN Gateway.                                                        | None — traffic egresses to Azure across GitHub-managed peering.                                                    |
+| Codespace changes     | Custom Dockerfile, `--cap-add=NET_ADMIN`, `/dev/net/tun`, openvpn client.                                 | None inside the Codespace; networking happens before user code runs.                                               |
+| Recurring Azure cost  | ~USD 140 / month for VpnGw1AZ (cheapest SKU that supports OpenVPN; Azure deprecated non-AZ SKUs in 2026). | Just the delegated subnet + NSG; no gateway.                                                                       |
+| Provisioning time     | 30–45 min apply, 30–45 min destroy.                                                                       | Minutes.                                                                                                           |
+| Auth                  | Self-signed root + per-user client cert.                                                                  | Managed by GitHub via the org/enterprise network configuration.                                                    |
+| DNS for private FQDNs | Not solved by default — operator side-loads `/etc/hosts` or deploys an Azure DNS Resolver.                | Same — needs Azure-side DNS strategy.                                                                              |
+| Client OS support     | Anywhere with OpenVPN ≥ 2.4 (with `disable-dco` for ≥ 2.6).                                               | Only GitHub-hosted compute.                                                                                        |
 
 Pick the OpenVPN approach when you need a tunnel **today** and are willing
 to pay the gateway cost. Pick hosted-compute private networking when your
