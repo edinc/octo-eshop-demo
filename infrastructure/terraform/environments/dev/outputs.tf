@@ -39,26 +39,10 @@ output "kube_config_command" {
   value = "az aks get-credentials --resource-group ${azurerm_resource_group.main.name} --name ${module.aks.cluster_name}"
 }
 
-output "p2s_vpn_gateway_name" {
-  value = module.networking.p2s_vpn_gateway_name
+output "hosted_compute_subnet_id" {
+  value = module.networking.hosted_compute_subnet_id
 }
 
-output "p2s_vpn_client_address_space" {
-  value = module.networking.p2s_vpn_client_address_space
-}
-
-output "p2s_dns_resolver_inbound_ip" {
-  value = module.networking.p2s_dns_resolver_inbound_ip
-}
-
-output "p2s_vpn_dns_servers" {
-  value = module.networking.p2s_vpn_dns_servers
-}
-
-output "github_hosted_runner_subnet_id" {
-  value = module.networking.github_hosted_runner_subnet_id
-}
-
-output "github_hosted_runner_network_settings_id" {
-  value = module.networking.github_hosted_runner_network_settings_id
+output "hosted_compute_network_settings_id" {
+  value = module.networking.hosted_compute_network_settings_id
 }

@@ -44,33 +44,17 @@ resource "azurerm_network_security_group" "database" {
   }
 
   dynamic "security_rule" {
-    for_each = var.enable_point_to_site_vpn ? [1] : []
+    for_each = var.enable_hosted_compute_private_networking ? [1] : []
 
     content {
-      name                       = "AllowPostgreSQLFromP2SVPN"
-      priority                   = 110
-      direction                  = "Inbound"
-      access                     = "Allow"
-      protocol                   = "Tcp"
-      source_port_range          = "*"
-      destination_port_range     = "5432"
-      source_address_prefixes    = var.p2s_vpn_client_address_space
-      destination_address_prefix = "*"
-    }
-  }
-
-  dynamic "security_rule" {
-    for_each = var.enable_github_hosted_runner_networking ? [1] : []
-
-    content {
-      name                       = "AllowPostgreSQLFromGitHubHostedRunner"
+      name                       = "AllowPostgreSQLFromHostedCompute"
       priority                   = 120
       direction                  = "Inbound"
       access                     = "Allow"
       protocol                   = "Tcp"
       source_port_range          = "*"
       destination_port_range     = "5432"
-      source_address_prefixes    = var.github_hosted_runner_subnet_prefix
+      source_address_prefixes    = var.hosted_compute_subnet_prefix
       destination_address_prefix = "*"
     }
   }
