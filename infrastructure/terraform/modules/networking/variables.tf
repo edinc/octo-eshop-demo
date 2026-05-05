@@ -18,6 +18,11 @@ variable "resource_group_name" {
   type        = string
 }
 
+variable "resource_group_id" {
+  description = "Resource group ID"
+  type        = string
+}
+
 variable "vnet_address_space" {
   description = "Virtual network address spaces"
   type        = list(string)
@@ -88,6 +93,30 @@ variable "p2s_dns_resolver_subnet_prefix" {
 
 variable "p2s_dns_resolver_inbound_private_ip" {
   description = "Static private IP address for the Private DNS Resolver inbound endpoint"
+  type        = string
+  default     = null
+}
+
+variable "enable_github_hosted_runner_networking" {
+  description = "Whether to create Azure-side GitHub-hosted runner private networking resources"
+  type        = bool
+  default     = false
+}
+
+variable "github_hosted_runner_subnet_prefix" {
+  description = "Dedicated subnet CIDR for GitHub-hosted runner private networking"
+  type        = list(string)
+  default     = []
+}
+
+variable "github_hosted_runner_business_id" {
+  description = "GitHub organization or enterprise databaseId used by GitHub.Network/networkSettings"
+  type        = string
+  default     = ""
+}
+
+variable "github_hosted_runner_network_settings_name" {
+  description = "Name for the GitHub.Network/networkSettings Azure resource"
   type        = string
   default     = null
 }

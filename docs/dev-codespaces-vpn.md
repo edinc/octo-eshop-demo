@@ -127,7 +127,7 @@ Run the connection helper:
 
 The helper decodes the Codespaces secrets into `.vpn/dev-p2s/`, writes a Codespaces-specific OpenVPN profile, starts OpenVPN, checks for `Initialization Sequence Completed`, resolves the dev PostgreSQL hostnames through `10.0.253.4`, and adds a temporary managed block to `/etc/hosts` so normal PostgreSQL tools use the private IPs.
 
-OpenVPN requires a Linux TUN device. The helper creates `/dev/net/tun` when the container permits it and strips Azure profile `log`, `status`, and `writepid` directives so logs stay under `.vpn/dev-p2s/openvpn.log`. If the helper reports that the TUN device or `NET_ADMIN` capability is unavailable, that GitHub-hosted Codespace cannot run an OpenVPN Point-to-Site client. Use a local dev container or VM with TUN/NET_ADMIN enabled for this VPN path, or switch the architecture to a Codespaces-supported private-networking option such as GitHub Codespaces Azure private networking or an SSH bastion/tunnel.
+OpenVPN requires a Linux TUN device. The helper creates `/dev/net/tun` when the container permits it and strips Azure profile `log`, `status`, and `writepid` directives so logs stay under `.vpn/dev-p2s/openvpn.log`. If the helper reports that the TUN device or `NET_ADMIN` capability is unavailable, that GitHub-hosted Codespace cannot run an OpenVPN Point-to-Site client. Use a local dev container or VM with TUN/NET_ADMIN enabled for this VPN path.
 
 Do not commit files under `.vpn/`.
 
@@ -162,6 +162,33 @@ If you already have a connection string, the same host, database, user, password
 ./scripts/disconnect-dev-vpn-codespace.sh
 ```
 
+## Azure private networking / VNet integration
+
+The OpenVPN path reaches the Azure VPN Gateway from GitHub-hosted Codespaces, but hosted Codespaces currently do not provide the `NET_ADMIN` capability required for OpenVPN to attach a TUN interface. That makes the Point-to-Site VPN path useful for local dev containers or VMs, but not for the current GitHub-hosted Codespace.
+
+GitHub's documented Azure VNet integration is configured through organization-level **network configurations** for GitHub-hosted runners. The Azure side uses a dedicated subnet delegated to `GitHub.Network/networkSettings` plus a `GitHub.Network/networkSettings` resource that references the GitHub organization or enterprise `databaseId`.
+
+This repository is currently owned by the personal account `edinc`, not a GitHub organization. Moving the repository to a GitHub organization with a supported plan is a prerequisite before this path can be activated. This scaffold is for GitHub-hosted runners and does not make GitHub-hosted Codespaces join the VNet unless GitHub adds or exposes equivalent Codespaces support for the organization.
+
+The Terraform scaffold is opt-in and disabled by default:
+
+```bash
+cd infrastructure/terraform/environments/dev
+export TF_VAR_enable_github_hosted_runner_networking=true
+export TF_VAR_github_hosted_runner_business_id="<github-org-or-enterprise-database-id>"
+terraform plan
+```
+
+Before enabling it:
+
+1. Register the Azure resource provider: `az provider register --namespace GitHub.Network`.
+2. Move or create the repository under a GitHub organization with a supported plan.
+3. Get the organization or enterprise `databaseId` and set `DEV_GITHUB_HOSTED_RUNNER_BUSINESS_ID`.
+4. Set `DEV_ENABLE_GITHUB_HOSTED_RUNNER_NETWORKING=true` only after the ID and organization setup are ready.
+5. Create the GitHub organization network configuration from the Azure `GitHub.Network/networkSettings` resource returned by Terraform.
+
+The default dev GitHub-hosted runner subnet is `10.0.252.0/24`. The DB NSG allows PostgreSQL `5432` from that subnet only when this feature is enabled. PostgreSQL public access remains disabled.
+
 ## Network ranges
 
 The default dev ranges are:
@@ -171,6 +198,7 @@ The default dev ranges are:
 | `10.0.254.0/27`   | VPN `GatewaySubnet`                      |
 | `10.0.253.0/28`   | Private DNS Resolver inbound endpoint    |
 | `10.0.253.4`      | Private DNS Resolver inbound endpoint IP |
+| `10.0.252.0/24`   | Optional GitHub-hosted runner subnet     |
 | `172.31.250.0/24` | VPN client address pool                  |
 
 Change these variables if they overlap with a developer network or future Azure subnet plan.

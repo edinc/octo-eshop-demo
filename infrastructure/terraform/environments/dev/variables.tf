@@ -100,6 +100,30 @@ variable "p2s_vpn_root_certificate_public_data" {
   default     = ""
 }
 
+variable "enable_github_hosted_runner_networking" {
+  description = "Enable Azure-side GitHub-hosted runner private networking resources for dev"
+  type        = bool
+  default     = false
+}
+
+variable "github_hosted_runner_subnet_prefix" {
+  description = "Address prefix for the dev GitHub-hosted runner private networking subnet"
+  type        = list(string)
+  default     = ["10.0.252.0/24"]
+}
+
+variable "github_hosted_runner_business_id" {
+  description = "GitHub organization or enterprise databaseId for GitHub.Network/networkSettings"
+  type        = string
+  default     = ""
+}
+
+variable "github_hosted_runner_network_settings_name" {
+  description = "Name for the dev GitHub.Network/networkSettings Azure resource"
+  type        = string
+  default     = null
+}
+
 variable "kubernetes_version" {
   description = "Kubernetes version for AKS"
   type        = string

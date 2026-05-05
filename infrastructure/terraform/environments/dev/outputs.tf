@@ -54,3 +54,11 @@ output "p2s_dns_resolver_inbound_ip" {
 output "p2s_vpn_dns_servers" {
   value = module.networking.p2s_vpn_dns_servers
 }
+
+output "github_hosted_runner_subnet_id" {
+  value = module.networking.github_hosted_runner_subnet_id
+}
+
+output "github_hosted_runner_network_settings_id" {
+  value = module.networking.github_hosted_runner_network_settings_id
+}

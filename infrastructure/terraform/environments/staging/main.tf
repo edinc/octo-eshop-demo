@@ -28,6 +28,7 @@ module "networking" {
   environment            = var.environment
   location               = var.location
   resource_group_name    = azurerm_resource_group.main.name
+  resource_group_id      = azurerm_resource_group.main.id
   vnet_address_space     = var.vnet_address_space
   aks_subnet_prefix      = var.aks_subnet_prefix
   database_subnet_prefix = var.database_subnet_prefix

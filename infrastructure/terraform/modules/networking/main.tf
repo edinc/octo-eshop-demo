@@ -59,6 +59,22 @@ resource "azurerm_network_security_group" "database" {
     }
   }
 
+  dynamic "security_rule" {
+    for_each = var.enable_github_hosted_runner_networking ? [1] : []
+
+    content {
+      name                       = "AllowPostgreSQLFromGitHubHostedRunner"
+      priority                   = 120
+      direction                  = "Inbound"
+      access                     = "Allow"
+      protocol                   = "Tcp"
+      source_port_range          = "*"
+      destination_port_range     = "5432"
+      source_address_prefixes    = var.github_hosted_runner_subnet_prefix
+      destination_address_prefix = "*"
+    }
+  }
+
   security_rule {
     name                       = "DenyAllInbound"
     priority                   = 4096
