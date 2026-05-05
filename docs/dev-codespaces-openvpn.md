@@ -77,7 +77,7 @@ the floor. Provisioning takes **20–45 minutes** and so does destroy, so flip
 
 | Path                                                                    | What it does                                                                             |
 | ----------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
-| `.devcontainer/Dockerfile`                                              | Adds `openvpn`, `iproute2`, `resolvconf` to the standard `typescript-node:20` image.     |
+| `.devcontainer/Dockerfile`                                              | Adds `openvpn`, `iproute2`, `openresolv` to the standard `typescript-node:20` image.     |
 | `.devcontainer/devcontainer.json`                                       | Switches from inline `image:` to `build:`, adds `runArgs` for capabilities + TUN device. |
 | `.devcontainer/postcreate/install-dev-tools.sh`                         | Reads `OPENVPNCONFIG` secret, writes `.ignore/openvpn.config`, starts OpenVPN.           |
 | `.gitignore`                                                            | Adds `.ignore/` and `codespaces-vpn-secrets/` so private material never gets committed.  |

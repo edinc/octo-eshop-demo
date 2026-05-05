@@ -11,14 +11,19 @@ FROM mcr.microsoft.com/devcontainers/typescript-node:${VARIANT}
 
 # Install the OpenVPN client. iproute2 ships with the base image but is named
 # explicitly so that the post-start script can rely on `ip` being on PATH.
-# resolvconf is required for OpenVPN to honour the DNS servers Azure pushes
-# on connect.
+#
+# We use `openresolv` (not `resolvconf`) because `resolvconf`'s post-install
+# tries to replace /etc/resolv.conf with a symlink, which fails inside
+# `docker build` (the daemon bind-mounts that file so the build can resolve
+# DNS, and ln returns EBUSY). `openresolv` provides the same /sbin/resolvconf
+# interface that openvpn's `update-resolv-conf` script calls, but its
+# postinst leaves /etc/resolv.conf alone — see issue #40.
 RUN export DEBIAN_FRONTEND=noninteractive \
     && apt-get update \
     && apt-get -y install --no-install-recommends \
         openvpn \
         iproute2 \
-        resolvconf \
+        openresolv \
         ca-certificates \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
