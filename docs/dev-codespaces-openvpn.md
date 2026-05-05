@@ -280,6 +280,37 @@ push its IP via the gateway's `vpn_client_configuration.dns_servers`
 attribute. That is intentionally **out of scope** for this branch to keep
 cost down — see [Future improvements](#future-improvements).
 
+### 6b. Connect with the official Microsoft PostgreSQL VS Code extension
+
+The devcontainer ships
+[`ms-ossdata.vscode-pgsql`](https://marketplace.visualstudio.com/items?itemName=ms-ossdata.vscode-pgsql)
+("PostgreSQL for Visual Studio Code") pre-installed and pre-configured. When
+the codespace comes up you'll see an elephant icon in the Activity Bar with
+three connections under the **Octo E-Shop Dev (via VPN)** group:
+
+| Profile            | Server                                                      | Database    | User      |
+| ------------------ | ----------------------------------------------------------- | ----------- | --------- |
+| `user-db (dev)`    | `octoeshop-dev-user-db-qyqw.postgres.database.azure.com`    | `userdb`    | `pgadmin` |
+| `product-db (dev)` | `octoeshop-dev-product-db-qyqw.postgres.database.azure.com` | `productdb` | `pgadmin` |
+| `order-db (dev)`   | `octoeshop-dev-order-db-qyqw.postgres.database.azure.com`   | `orderdb`   | `pgadmin` |
+
+All three use `sslmode=require` and SQL-login auth (the dev servers don't
+have Entra auth enabled). On first connect the extension prompts for the
+password and remembers it in VS Code's SecretStorage for the codespace's
+lifetime.
+
+**Two prerequisites for the connect to succeed:**
+
+1. **The OpenVPN tunnel must be up** (see [step 5](#5-rebuild-the-codespace-and-verify)) — without it the connections will time out at the TCP layer because tcp/5432 to the database subnet is only allowed from the VPN client pool.
+2. **The FQDN must resolve to the private IP.** P2S clients don't get private DNS pushed (see [step 6 above](#6-connect-with-psql-dns-workaround)). Use the same `/etc/hosts` workaround as for `psql`: add a line like `10.0.2.X octoeshop-dev-user-db-qyqw.postgres.database.azure.com` for each of the three FQDNs (look up the IPs once with `az network private-dns record-set a show -g octoeshop-dev-rg -z privatelink.postgres.database.azure.com -n <server-shortname> --query 'aRecords[0].ipv4Address' -o tsv` from your laptop, since `az` doesn't need the tunnel to read DNS records).
+
+Where to get the password: any of the three `*-db-connection-string` secrets in Key Vault `octoeshopdevswkvhpxt5`, or `terraform output` in the dev environment.
+
+> If the FQDNs above don't match what `terraform output user_db_fqdn`
+> (etc) returns, the dev servers were re-created with new random suffixes;
+> update `pgsql.connections` in `.devcontainer/devcontainer.json` to match
+> and rebuild the Codespace.
+
 ### 7. Tear down when done
 
 `VpnGw1AZ` bills hourly. Tear it down as soon as you finish testing:

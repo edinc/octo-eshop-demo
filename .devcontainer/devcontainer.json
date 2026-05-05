@@ -46,7 +46,53 @@
         },
         "eslint.workingDirectories": [{ "pattern": "services/*" }, { "pattern": "shared/*" }],
         "files.eol": "\n",
-        "prisma.showPrismaDataPlatformNotification": false
+        "prisma.showPrismaDataPlatformNotification": false,
+        "pgsql.serverGroups": [
+          {
+            "id": "octoeshop-dev",
+            "name": "Octo E-Shop Dev (via VPN)",
+            "color": "#0078D4",
+            "description": "Dev PostgreSQL Flexible Servers. Reachable only when the OpenVPN P2S tunnel is up (see docs/dev-codespaces-openvpn.md). Password is prompted on first connect."
+          }
+        ],
+        "pgsql.connections": [
+          {
+            "id": "octoeshop-dev-user-db",
+            "groupId": "octoeshop-dev",
+            "profileName": "user-db (dev)",
+            "server": "octoeshop-dev-user-db-qyqw.postgres.database.azure.com",
+            "port": "5432",
+            "database": "userdb",
+            "user": "pgadmin",
+            "authenticationType": "SqlLogin",
+            "emptyPasswordInput": true,
+            "sslmode": "require"
+          },
+          {
+            "id": "octoeshop-dev-product-db",
+            "groupId": "octoeshop-dev",
+            "profileName": "product-db (dev)",
+            "server": "octoeshop-dev-product-db-qyqw.postgres.database.azure.com",
+            "port": "5432",
+            "database": "productdb",
+            "user": "pgadmin",
+            "authenticationType": "SqlLogin",
+            "emptyPasswordInput": true,
+            "sslmode": "require"
+          },
+          {
+            "id": "octoeshop-dev-order-db",
+            "groupId": "octoeshop-dev",
+            "profileName": "order-db (dev)",
+            "server": "octoeshop-dev-order-db-qyqw.postgres.database.azure.com",
+            "port": "5432",
+            "database": "orderdb",
+            "user": "pgadmin",
+            "authenticationType": "SqlLogin",
+            "emptyPasswordInput": true,
+            "sslmode": "require"
+          }
+        ]
       },
       "extensions": [
         "dbaeumer.vscode-eslint",
@@ -65,7 +111,8 @@
         "editorconfig.editorconfig",
         "mikestead.dotenv",
         "redhat.vscode-yaml",
-        "ms-azuretools.vscode-azureresourcegroups"
+        "ms-azuretools.vscode-azureresourcegroups",
+        "ms-ossdata.vscode-pgsql"
       ]
     }
   },
